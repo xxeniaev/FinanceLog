@@ -3,11 +3,9 @@ package ru.dreamteam.examples
 import sttp.client._
 import cats.syntax.all._
 import cats.instances.all._
-import com.twitter.util.Future
 import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.model.Uri
 import zio.{Task, ZIO}
-import zio.interop.twitter._
 import zio.interop.catz._
 
 object Sttp extends App {

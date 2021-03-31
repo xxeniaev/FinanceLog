@@ -8,6 +8,7 @@ import org.http4s.syntax.kleisli._
 import sttp.tapir._
 import sttp.tapir.server.http4s.Http4sServerInterpreter
 import cats.syntax.all._
+import sttp.tapir.server.ServerEndpoint
 
 import scala.concurrent.ExecutionContext
 
@@ -22,10 +23,11 @@ object Tapir extends App {
   implicit val contextShift: ContextShift[IO] = IO.contextShift(ec)
   implicit val timer: Timer[IO] = IO.timer(ec)
 
+  val serverEndpoint: List[ServerEndpoint[String, Unit, String, Any, IO]] =
+    List(helloWorld.serverLogic(name => IO(s"Hello, $name!".asRight[Unit])))
   // converting an endpoint to a route (providing server-side logic); extension method comes from imported packages
   val helloWorldRoutes: HttpRoutes[IO] =
-    Http4sServerInterpreter.toRoutes(helloWorld)(name =>
-      IO(s"Hello, $name!".asRight[Unit]))
+    Http4sServerInterpreter.toRoutes(serverEndpoint)
 
   // starting the server
   val server: Resource[IO, Server[IO]] =

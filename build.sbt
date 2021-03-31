@@ -5,6 +5,8 @@ version := "0.1"
 scalaVersion := "2.13.5"
 
 libraryDependencies ++= Seq(
+  // for config reading
+  "com.github.pureconfig" %% "pureconfig" % "0.14.1",
 
   // main effect
   "dev.zio" %% "zio"                 % "1.0.5",
