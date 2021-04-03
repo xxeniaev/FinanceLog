@@ -19,3 +19,4 @@ object ConfigComponent {
 }
 
 case class HttpConfig(port: Int)
+case class BD(a: String)
