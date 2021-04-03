@@ -1,31 +1,48 @@
-// expose an endpoint as an finatra server using cats-effect project
+package sttp.tapir.examples
 
-import cats.effect.IO
+import cats.effect._
+import sttp.client3._
+import org.http4s.HttpRoutes
+import org.http4s.server.Router
+import org.http4s.server.blaze.BlazeServerBuilder
+import org.http4s.syntax.kleisli._
 import sttp.tapir._
-import sttp.tapir.server.finatra._
-import sttp.tapir.server.finatra.cats.FinatraCatsServerInterpreter
-import com.twitter.util.Future
-import com.twitter.finatra.http.Controller
+import sttp.tapir.server.http4s.Http4sServerInterpreter
+import cats.syntax.all._
+import cats.effect._
+import fs2._
+import scala.concurrent.ExecutionContext
 
+object HelloWorldHttp4sServer extends App {
+  // the endpoint: single fixed path input ("hello"), single query parameter
+  // corresponds to: GET /hello?name=...
+  val helloWorld: Endpoint[String, Unit, String, Any] =
+  endpoint.get.in("hello").in(query[String]("name")).out(stringBody)
 
+  // mandatory implicits
+  implicit val ec: ExecutionContext = scala.concurrent.ExecutionContext.Implicits.global
+  implicit val contextShift: ContextShift[IO] = IO.contextShift(ec)
+  implicit val timer: Timer[IO] = IO.timer(ec)
 
-def countCharacters(s: String): IO[Either[Unit, Int]] =
-  IO.pure(Right[Unit, Int](s.length))
+  // converting an endpoint to a route (providing server-side logic); extension method comes from imported packages
+  val helloWorldRoutes: HttpRoutes[IO] = Http4sServerInterpreter.toRoutes(helloWorld)(name => IO(s"Hello, $name!".asRight[Unit]))
 
-val countCharactersEndpoint: Endpoint[String, Unit, Int, Any] =
-  endpoint.in(stringBody).out(plainBody[Int])
+  // starting the server
 
-val countCharactersRoute: FinatraRoute = FinatraCatsServerInterpreter.toRoute(countCharactersEndpoint)(countCharacters)
-
-
-
-def logic(s: String, i: Int): Future[Either[Unit, String]] = ???
-val anEndpoint: Endpoint[(String, Int), Unit, String, Any] = ???
-val aRoute: FinatraRoute = FinatraServerInterpreter.toRoute(anEndpoint)((logic _).tupled)
-
-
-
-val atRoute: FinatraRoute = ???
-class MyController extends Controller with TapirController {
-  addTapirRoute(atRoute)
+  BlazeServerBuilder[IO](ec)
+    .bindHttp(1337, "localhost")
+    .withHttpApp(Router("/" -> helloWorldRoutes).orNotFound)
+    .serve
+    .compile
+    .drain.unsafeRunSync()
+  //    .resource
+  //    .use { _ =>
+  //      IO {
+  //        val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
+  //        val result: String = basicRequest.response(asStringAlways).get(uri"http://localhost:8080/hello?name=Frodo").send(backend).body
+  //        println("Got result: " + result)
+  //
+  //        assert(result == "Hello, Frodo!")
+  //      }
+  //    }
 }
