@@ -21,6 +21,11 @@ libraryDependencies ++= Seq(
   //  for http server
   "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "0.17.19",
 
+  // newtype
+  "io.estatico" %% "newtype" % "0.4.4",
+  // enumerantum
+  "com.beachape" %% "enumeratum" % "1.6.1",
+
   // for DB
   "org.tpolecat" %% "doobie-core"      % "0.12.1",
   "org.tpolecat" %% "doobie-h2"        % "0.12.1",          // H2 driver 1.4.200 + type mappings.

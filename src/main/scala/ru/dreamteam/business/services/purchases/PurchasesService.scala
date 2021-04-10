@@ -1,10 +1,12 @@
 package ru.dreamteam.business.services.purchases
 
-import zio.IO
-
-import scala.concurrent.Future
+import ru.dreamteam.business.{Login, Purchase, User}
 
 trait PurchasesService[F[_]] {
-  def get(): F[String]
-  def add()
+
+  // дописать создать, все на ваше усмотрение
+  def getPurchase(userId: User.Id): F[List[Purchase]]
+
+  def getPurchaseByType(userId: User.Id, purchaseType: PurchaseType): F[List[Purchase]]
+
 }
