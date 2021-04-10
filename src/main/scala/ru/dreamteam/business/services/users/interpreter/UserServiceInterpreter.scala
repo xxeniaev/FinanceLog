@@ -3,11 +3,11 @@ package ru.dreamteam.business.services.users.interpreter
 import cats.effect.Sync
 import cats.syntax.all._
 import ru.dreamteam.business.services.SessionService
-import ru.dreamteam.business.{Login, Password, Token, User}
+import ru.dreamteam.business.{Token, User}
 import ru.dreamteam.business.services.users.UserService
 
 class UserServiceInterpreter[F[_]: Sync](sessionService: SessionService[F], repo: ???) extends UserService[F] {
-  override def login(login: Login, password: Password): F[Token] = {
+  override def login(login: User.Login, password: User.Password): F[Token] = {
     for {
       fromBd <- Sync[F].delay { User(???, ???) } // repo.get
       // проверить пароль
@@ -16,5 +16,5 @@ class UserServiceInterpreter[F[_]: Sync](sessionService: SessionService[F], repo
 
   }
 
-  override def registration(login: Login, password: Password): F[User] = ???
+  override def registration(login: User.Login, password: User.Password): F[User] = ???
 }

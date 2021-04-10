@@ -6,6 +6,6 @@ import cats.effect.Resource
 import scala.concurrent.Future
 
 trait UserService[F[_]] {
-  def login(login: Login, password: Password): F[Token]
-  def registration(login: Login, password: Password): F[User] // проверили что такого нет, записали, вернули созданного
+  def login(login: User.Login, password: User.Password): F[Token]
+  def registration(login: User.Login, password: User.Password): F[User] // проверили что такого нет, записали, вернули созданного
 }
