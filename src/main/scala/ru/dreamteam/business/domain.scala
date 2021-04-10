@@ -10,15 +10,15 @@ case class CurrencyCode(name: String)
 case class Currency(name: CurrencyName, code: CurrencyCode)
 case class Money(amount:BigDecimal, currency: Currency)
 
+
 case class Token(token: String)
-case class Login(login: String)
-case class Password(value: String)
+case class User(userId: User.Id, login: User.Login, password: User.Password)
 
-
-case class User(userId: User.Id, login: Login, password: Password)
 // new type usage
 object User {
   @newtype case class Id(id: String)
+  @newtype case class Login(login: String)
+  @newtype case class Password(token: String)
 }
 
 
