@@ -22,5 +22,12 @@ object User {
 }
 
 
-case class PurchaseType(t: String)
-case class Purchase(money: Money, comment: String, `type`: PurchaseType)
+case class Purchase(money: Money, comment: String, category: Purchase.PurchaseType)
+
+object Purchase {
+  @newtype case class Id(id: String)
+  @newtype case class PurchaseType(category: String)
+}
+
+case object PurchaseNotFoundError
+case object UserNotFoundError
