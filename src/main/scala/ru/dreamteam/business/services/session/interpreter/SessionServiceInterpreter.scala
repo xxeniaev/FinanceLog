@@ -1,10 +1,8 @@
-package ru.dreamteam.business.services
+package ru.dreamteam.business.services.session.interpreter
 
 import ru.dreamteam.business.Token
+import ru.dreamteam.business.services.session.SessionService
 
-trait SessionService[F[_]] {
-  def generate(): F[Token]
-}
 
 // read from cats
 // ref MVAR

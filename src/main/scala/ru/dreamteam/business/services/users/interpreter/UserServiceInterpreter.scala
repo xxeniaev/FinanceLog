@@ -2,7 +2,7 @@ package ru.dreamteam.business.services.users.interpreter
 
 import cats.effect.Sync
 import cats.syntax.all._
-import ru.dreamteam.business.services.SessionService
+import ru.dreamteam.business.services.session.SessionService
 import ru.dreamteam.business.{Login, Password, Token, User}
 import ru.dreamteam.business.services.users.UserService
 
