@@ -2,7 +2,7 @@ package ru.dreamteam.business.backends.users.interpreter
 
 import doobie.h2.H2Transactor
 import doobie.implicits.toSqlInterpolator
-import ru.dreamteam.business.{Purchase, PurchaseNotFoundError, User}
+import ru.dreamteam.business.{Purchase, User}
 import ru.dreamteam.business.backends.users.UsersRepository
 
 import scala.concurrent.Future
@@ -21,8 +21,15 @@ class UsersRepositoryInterpreter[F[_]](transactor: H2Transactor[F]) extends User
   // 2. в таких случаях надо F[User] или Future[User] ?
   override def getUser(userId: User.Id): F[User] = {
     sql"SELECT * FROM users WHERE userId = $userId".query[User].option.transact(transactor).map {
-      case Some(user) => Right(user)
-      case None => Left(UserNotFoundError)
+      case Some(user) => user
+      case _ => None
+    }
+  }
+
+  override def getUser(login: User.Login): F[User] = {
+    sql"SELECT * FROM users WHERE login = $login".query[User].option.transact(transactor).map {
+      case Some(user) => user
+      case _ => None
     }
   }
 }

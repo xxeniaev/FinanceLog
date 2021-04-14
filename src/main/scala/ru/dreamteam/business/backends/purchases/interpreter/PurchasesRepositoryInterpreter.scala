@@ -1,7 +1,7 @@
 package ru.dreamteam.business.backends.purchases.interpreter
 
 import doobie.h2.H2Transactor
-import ru.dreamteam.business.{Purchase, PurchaseNotFoundError, User}
+import ru.dreamteam.business.{Purchase, User}
 import doobie.implicits._
 import ru.dreamteam.business.backends.purchases.PurchasesRepository
 
@@ -17,7 +17,7 @@ class PurchaseRepositoryInterpreter[F[_]](transactor: H2Transactor[F]) extends P
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE userId = $userId".query[Purchase].to[List].transact(transactor)
   }
 
-  override def getSomePurchases(userId: User.Id, category: Purchase.PurchaseType): F[List[Purchase]] = {
+  override def getSomePurchases(userId: User.Id, category: Purchase.Category): F[List[Purchase]] = {
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE category = $category AND userId = $userId".query[Purchase].to[List].transact(transactor)
   }
 
@@ -25,8 +25,8 @@ class PurchaseRepositoryInterpreter[F[_]](transactor: H2Transactor[F]) extends P
 
   override def getOnePurchase(userId: User.Id, purchaseId: Purchase.Id): F[Purchase] = {
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE purchaseId = $purchaseId AND userId = $userId".query[Purchase].option.transact(transactor).map {
-      case Some(purchase) => Right(purchase)
-      case None => Left(PurchaseNotFoundError)
+      case Some(purchase) => purchase
+      case _ => None
     }
   }
 
