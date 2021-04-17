@@ -1,7 +1,8 @@
 package ru.dreamteam.business.services.session
 
-import ru.dreamteam.business.Token
+import ru.dreamteam.business.{Token, User}
 
 trait SessionService[F[_]] {
-  def generate(): F[Token]
+  def generate(userId: User.Id): F[Token]
+  def getUser(token: Token): F[User.Id]
 }
