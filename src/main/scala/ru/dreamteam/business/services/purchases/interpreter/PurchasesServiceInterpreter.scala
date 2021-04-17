@@ -1,8 +1,9 @@
 package ru.dreamteam.business.services.purchases.interpreter
 
+import ru.dreamteam.business.Purchase.PurchaseType
 import ru.dreamteam.business.{Money, Purchase, User}
 import ru.dreamteam.business.backends.purchases.PurchasesRepository
-import ru.dreamteam.business.services.purchases.{PurchaseType, PurchasesService}
+import ru.dreamteam.business.services.purchases.PurchasesService
 
 class PurchasesServiceInterpreter[F[_]](repo: PurchasesRepository[F]) extends PurchasesService[F] {
   override def getPurchase(userId: User.Id): F[List[Purchase]] = ???

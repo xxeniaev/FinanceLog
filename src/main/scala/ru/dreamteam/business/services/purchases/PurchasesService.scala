@@ -1,5 +1,6 @@
 package ru.dreamteam.business.services.purchases
 
+import ru.dreamteam.business.Purchase.PurchaseType
 import ru.dreamteam.business.{Money, Purchase, User}
 
 trait PurchasesService[F[_]] {

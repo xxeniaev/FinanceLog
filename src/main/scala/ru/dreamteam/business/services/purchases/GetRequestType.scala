@@ -4,6 +4,7 @@ package ru.dreamteam.business.services.purchases
 
 import enumeratum.EnumEntry
 import enumeratum._
+import ru.dreamteam.business.Purchase.PurchaseType
 
 sealed trait RequestType extends EnumEntry
 object Nesting extends Enum[PurchaseType] {
