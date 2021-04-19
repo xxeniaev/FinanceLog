@@ -18,13 +18,24 @@ libraryDependencies ++= Seq(
   // for http client
   "com.softwaremill.sttp.client" %% "core"            % "2.2.8",
   "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.8",
+
   //  for http server
   "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "0.17.19",
+  "com.softwaremill.sttp.tapir" %% "tapir-json-tethys" % "0.17.19",
+
+
+  // json
+  "com.tethys-json" %% "tethys-core" % "0.23.0",
+  "com.tethys-json" %% "tethys-jackson" % "0.23.0",
+  "com.tethys-json" %% "tethys-derivation" % "0.23.0",
+  "com.tethys-json" %% "tethys-enumeratum" % "0.23.0",
 
   // newtype
   "io.estatico" %% "newtype" % "0.4.4",
   // enumerantum
   "com.beachape" %% "enumeratum" % "1.6.1",
+
+  "tf.tofu" %% "derevo-tethys" % "0.12.3",
 
   // for DB
   "org.tpolecat" %% "doobie-core"      % "0.12.1",
@@ -33,4 +44,8 @@ libraryDependencies ++= Seq(
   "org.tpolecat" %% "doobie-specs2"    % "0.12.1" % "test", // Specs2 support for typechecking statements.
   "org.tpolecat" %% "doobie-scalatest" % "0.12.1" % "test"  // ScalaTest support for typechecking statements.
 
+)
+
+scalacOptions := Seq(
+  "-Ymacro-annotations"
 )

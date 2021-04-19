@@ -12,6 +12,8 @@ import sttp.tapir._
 
 import scala.concurrent.ExecutionContext
 import cats.syntax.all._
+import ru.dreamteam.application.ServerComponent.Modules
+import ru.dreamteam.business.BusinessComponent
 import zio.ZIO
 import zio.interop.catz._
 
@@ -42,12 +44,16 @@ class Application {
 
   def build: Resource[MainTask, Unit] = for {
     configComp <- rLiftF(ConfigComponent[MainTask]())
-    // executorsComp <- ExecutorsComponent
-    // databaseComp <- DatabaseComponent
+     executorsComp <- ExecutionComponent.build[MainTask]
+     databaseComp <- DatabaseComponent.build[MainTask](configComp.appConfig.dbConfig)
     // httpClientComp <- HttpClientComponent
-    // businessComp <- BusinessComponent
-    // serverComp <- ServerComponent
-    // server <- ServerComponent
+     businessComp <- BusinessComponent.build[MainTask](???)
+     server <- ServerComponent.build(
+       Modules(
+          system = List(businessComp.systemModule),
+          public = List(businessComp.userModule)
+       )
+     )(configComp.appConfig.httpConfig, executorsComp.main)
 
   } yield ()
 }
