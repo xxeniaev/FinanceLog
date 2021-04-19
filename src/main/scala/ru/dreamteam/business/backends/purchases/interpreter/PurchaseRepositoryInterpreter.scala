@@ -6,64 +6,70 @@ import cats.effect.BracketThrow
 import doobie.h2.H2Transactor
 import ru.dreamteam.business.{Money, Purchase, User}
 import doobie.implicits._
+import ru.dreamteam.business.Purchase.{Category, PurchaseType}
 import ru.dreamteam.business.backends.purchases.PurchasesRepository
 import ru.dreamteam.business.backends.purchases.PurchasesRepository.PurchaseRequest
-import ru.dreamteam.business.backends.purchases.interpreter.PurchaseRepositoryInterpreter.{PurchaseRaw, selectPurchase, transform}
+import ru.dreamteam.business.backends.purchases.interpreter.PurchaseRepositoryInterpreter.{add, selectByCategory, selectByPurchaseId, selectByUserId, transform}
+import ru.dreamteam.business.backends.users.interpreter.UsersRepositoryInterpreter.add
 
 
 class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F]) extends PurchasesRepository[F] {
-  // 0. no implicits found for parameter ev: Bracket[F, Throwable] это что вообще и как исправить
-  // кажется, надо что-то типа строчки ниже, но я не понимаю зачем и как
-  //  implicit val ev: Bracket[F, Throwable] = Bracket[F, Throwable]
-
-
-  override def getAllPurchases(userId: User.Id): F[List[Purchase]] = {
-    sql"SELECT purchaseId, money, comment, category FROM purchases WHERE userId = $userId"
-      .query[PurchaseRaw]
-      .to[List]
-      .transact(transactor)
-    ???
-  }
-
-  override def getPurchasesByCategory(userId: User.Id, category: Purchase.Category): F[List[Purchase]] = {
-    sql"SELECT purchaseId, money, comment, category FROM purchases WHERE category = ${category.category.entryName} AND userId = $userId"
-      .query[PurchaseRaw]
-      .to[List]
-      .transact(transactor)
-    ???
-  }
-
-  // 1. переделать без Either
-
-  override def findOnePurchase(userId: User.Id, purchaseId: Purchase.Id): F[Option[Purchase]] = {
+  override def findByUserId(userId: User.Id): F[List[Purchase]] =
     for {
-      raw <- selectPurchase(purchaseId.id, userId.id).transact(transactor)
-      res = raw.flatMap(transform)
-    } yield res
-  }
+      raw <- selectByUserId(userId.id).transact(transactor)
+      result = raw.flatMap(transform)
+    } yield result
 
-  // 2. тут вопросы по поводу создания id
+  override def findByCategory(userId: User.Id, category: Purchase.Category): F[List[Purchase]] =
+    for {
+      raw <- selectByCategory(userId.id, category.category).transact(transactor)
+      result = raw.flatMap(transform)
+    } yield result
+
+  override def findByPurchaseId(userId: User.Id, purchaseId: Purchase.Id): F[Option[Purchase]] =
+    for {
+      raw <- selectByPurchaseId(userId.id, purchaseId.id).transact(transactor)
+      result = raw.flatMap(transform)
+    } yield result
+
+  // методом add получаем строку - id покупки -> делаем Id из строки -> возвращаем его
+  // транзакт красненький (!) - что-то с ним сделать
   override def addPurchase(userId: User.Id, purchase: PurchaseRequest): F[Purchase] = {
-    // нужно переписать
+    for {
+      raw <- add(userId.id, purchase.money, purchase.comment, purchase.category).transact(transactor).map { id => purchase.copy(id) }
+      id <- add(userId.id, purchase.money, purchase.comment, purchase.category)
+      result = Purchase.Id(id.toString)
+    } yield result
 //    sql"INSERT INTO purchases (money, comment, category, userId) VALUES (${purchase.money}, ${purchase.comment}, ${purchase.category.category.entryName}, ${userId})"
 //      .update
 //      .withUniqueGeneratedKeys[Long]("purchaseId")
 //      .transact(transactor).map { id =>
 //      purchase.copy(id)
 //    }
-    ???
   }
 }
 
 object PurchaseRepositoryInterpreter {
-
+  // написать метод(после разборок с таким же методом у юзера)
   def transform(raw: PurchaseRaw): Option[Purchase] = ???
 
+  def selectByUserId(userId: String): doobie.ConnectionIO[List[PurchaseRaw]] =
+    sql"SELECT purchaseId, money, comment, category FROM purchases WHERE userId = $userId"
+      .query[PurchaseRaw]
+      .to[List]
 
-  def selectPurchase(pId: String, userId: String): doobie.ConnectionIO[Option[PurchaseRaw]] =
+  def selectByCategory(userId: String, category: PurchaseType): doobie.ConnectionIO[List[PurchaseRaw]] =
+    sql"SELECT purchaseId, money, comment, category FROM purchases WHERE category = ${category.entryName} AND userId = $userId"
+      .query[PurchaseRaw]
+      .to[List]
+
+  def selectByPurchaseId(userId: String, pId: String): doobie.ConnectionIO[Option[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE purchaseId = $pId AND userId = $userId"
     .query[PurchaseRaw]
     .option
+
+  // тоже дописать метод
+   def add(userId: String, money: String, comment: String, category: String):  String = ???
 
   case class PurchaseRaw(
                           purchaseId: Long,
