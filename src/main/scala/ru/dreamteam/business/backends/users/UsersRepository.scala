@@ -9,6 +9,6 @@ trait UsersRepository[F[_]] {
   def addUser(user: UserReq):F[User.Id]
 }
 object UsersRepository {
-  case class UserReq(login: String, password: String)
+  case class UserReq(login: User.Login, password: User.Password)
 }
 

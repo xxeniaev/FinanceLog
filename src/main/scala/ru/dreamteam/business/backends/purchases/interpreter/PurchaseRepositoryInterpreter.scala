@@ -6,11 +6,10 @@ import cats.effect.BracketThrow
 import doobie.h2.H2Transactor
 import ru.dreamteam.business.{Money, Purchase, User}
 import doobie.implicits._
-import ru.dreamteam.business.Purchase.{Category, PurchaseType}
+import ru.dreamteam.business.Purchase.PurchaseType
 import ru.dreamteam.business.backends.purchases.PurchasesRepository
 import ru.dreamteam.business.backends.purchases.PurchasesRepository.PurchaseRequest
-import ru.dreamteam.business.backends.purchases.interpreter.PurchaseRepositoryInterpreter.{add, selectByCategory, selectByPurchaseId, selectByUserId, transform}
-import ru.dreamteam.business.backends.users.interpreter.UsersRepositoryInterpreter.add
+import ru.dreamteam.business.backends.purchases.interpreter.PurchaseRepositoryInterpreter.{insertPurchase, selectByCategory, selectByPurchaseId, selectByUserId, transform}
 
 
 class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F]) extends PurchasesRepository[F] {
@@ -20,9 +19,9 @@ class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Tra
       result = raw.flatMap(transform)
     } yield result
 
-  override def findByCategory(userId: User.Id, category: Purchase.Category): F[List[Purchase]] =
+  override def findByCategory(userId: User.Id, category: PurchaseType): F[List[Purchase]] =
     for {
-      raw <- selectByCategory(userId.id, category.category).transact(transactor)
+      raw <- selectByCategory(userId.id, category).transact(transactor)
       result = raw.flatMap(transform)
     } yield result
 
@@ -32,26 +31,19 @@ class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Tra
       result = raw.flatMap(transform)
     } yield result
 
-  // методом add получаем строку - id покупки -> делаем Id из строки -> возвращаем его
-  // транзакт красненький (!) - что-то с ним сделать
-  override def addPurchase(userId: User.Id, purchase: PurchaseRequest): F[Purchase] = {
+  override def addPurchase(userId: User.Id, purchase: PurchaseRequest): F[Purchase.Id] =
     for {
-      raw <- add(userId.id, purchase.money, purchase.comment, purchase.category).transact(transactor).map { id => purchase.copy(id) }
-      id <- add(userId.id, purchase.money, purchase.comment, purchase.category)
-      result = Purchase.Id(id.toString)
-    } yield result
-//    sql"INSERT INTO purchases (money, comment, category, userId) VALUES (${purchase.money}, ${purchase.comment}, ${purchase.category.category.entryName}, ${userId})"
-//      .update
-//      .withUniqueGeneratedKeys[Long]("purchaseId")
-//      .transact(transactor).map { id =>
-//      purchase.copy(id)
-//    }
-  }
+      id <- insertPurchase(userId.id, purchase: PurchaseRequest).transact(transactor)
+    } yield Purchase.Id(id)
 }
 
 object PurchaseRepositoryInterpreter {
-  // написать метод(после разборок с таким же методом у юзера)
-  def transform(raw: PurchaseRaw): Option[Purchase] = ???
+  // на месте вопросиков
+  // как кастовать BigDecimal + String -> BigDecimal + Currency(String, String)
+  // String -> PurchaseType
+  def transform(raw: PurchaseRaw): Option[Purchase] = {
+    Option(Purchase(Purchase.Id(raw.purchaseId), Money(raw.amount, ???), Purchase.Comment(raw.comment), ???))
+  }
 
   def selectByUserId(userId: String): doobie.ConnectionIO[List[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE userId = $userId"
@@ -65,18 +57,19 @@ object PurchaseRepositoryInterpreter {
 
   def selectByPurchaseId(userId: String, pId: String): doobie.ConnectionIO[Option[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE purchaseId = $pId AND userId = $userId"
-    .query[PurchaseRaw]
-    .option
+      .query[PurchaseRaw]
+      .option
 
-  // тоже дописать метод
-   def add(userId: String, money: String, comment: String, category: String):  String = ???
+   def insertPurchase(userId: String, purchase: PurchaseRequest):  doobie.ConnectionIO[String] =
+     sql"INSERT INTO purchases (amount, currency, comment, category, userId) VALUES (${purchase.money.amount}, ${purchase.money.currency}, ${purchase.comment}, ${purchase.category.entryName}, $userId)"
+         .update
+         .withUniqueGeneratedKeys[String]("purchaseId")
 
   case class PurchaseRaw(
-                          purchaseId: Long,
-                          money: BigDecimal,
+                          purchaseId: String,
+                          amount: BigDecimal,
+                          currency: String,
                           comment: String,
                           category: String,
-                          currency: String
                         )
-
 }

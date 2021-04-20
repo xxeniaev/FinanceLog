@@ -1,14 +1,15 @@
 package ru.dreamteam.business.backends.users.interpreter
 
 import cats.Monad
+import cats.syntax.all._
 import cats.effect.BracketThrow
 import doobie.h2.H2Transactor
-import doobie.implicits.toSqlInterpolator
-import ru.dreamteam.business.{User}
+import ru.dreamteam.business.User
+import doobie.implicits._
 import ru.dreamteam.business.backends.users.UsersRepository
-import ru.dreamteam.business.backends.purchases.interpreter.PurchaseRepositoryInterpreter.{PurchaseRaw, selectByUserId, transform}
 import ru.dreamteam.business.backends.users.UsersRepository.UserReq
-import ru.dreamteam.business.backends.users.interpreter.UsersRepositoryInterpreter.{add, selectAll, selectUser}
+import ru.dreamteam.business.backends.users.interpreter.UsersRepositoryInterpreter.{transform, insertUser, selectAll, selectUser}
+import doobie.implicits.toSqlInterpolator
 
 
 class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F]) extends UsersRepository[F] {
@@ -18,39 +19,21 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transa
       result = raw.flatMap(transform)
     } yield result
 
-  // что-то снова с транзактом - не понятно, потому что BracketThrow на месте. или еще что-то нужно?
   override def findUser(userId: User.Id): F[Option[User]] =
     for {
       raw <- selectUser(userId.id).transact(transactor)
       result = raw.flatMap(transform)
     } yield result
 
-  // методом add получаем строку - id юзера -> делаем Id-тип из строки -> возвращаем его
-  // надо подумать возвращать юзера или его id - пока возвращается id
-  // и вообще может переписать как-то, но так работает вроде
-  override def addUser(user: UserReq): F[User.Id] = {
+  override def addUser(user: UserReq): F[User.Id] =
     for {
-      raw <- add(user.login, user.password).transact(transactor).map { id => user.copy(id) }
-      id <- add(user.login, user.password)
-      result = User.Id(id.toString)
-    } yield result
-//    sql"INSERT INTO users (login, password) VALUES (${user.login}, ${user.password})".
-//      update
-//      .withUniqueGeneratedKeys[Long]("id")
-//      .transact(transactor).map { id =>
-//      user.copy(id)
-//    }
-  }
+      id <- insertUser(user.login.login, user.password.password).transact(transactor)
+    } yield User.Id(id)
 }
 
 object UsersRepositoryInterpreter {
-  // надо будет переписать первую строчку for comp.
   def transform(raw: UserRaw): Option[User] =
-    for {
-      id <- raw.userId
-      login <- raw.login
-      password <- raw.password
-    } yield User(User.Id(id), User.Login(login.toString), User.Password(password.toString))
+    Option(User(User.Id(raw.userId), User.Login(raw.login), User.Password(raw.password)))
 
   def selectAll(): doobie.ConnectionIO[List[UserRaw]] =
     sql"SELECT userId, login, password FROM users"
@@ -62,17 +45,14 @@ object UsersRepositoryInterpreter {
         .query[UserRaw]
         .option
 
-  // тут надо дописать функцию, чтобы строку возвращала нормально
-  def add(login: String, password: String): String = {
-    sql"INSERT INTO users (login, password) VALUES (${login}, ${password})"
+  def insertUser(login: String, password: String): doobie.ConnectionIO[String] = {
+    sql"INSERT INTO users (login, password) VALUES ($login, $password)"
       .update
-      .withUniqueGeneratedKeys[Long]("id")
-    ???
+      .withUniqueGeneratedKeys[String]("userId")
   }
 
-
   case class UserRaw(
-                        userId: Long,
+                        userId: String,
                         login: String,
                         password: String
                         )
