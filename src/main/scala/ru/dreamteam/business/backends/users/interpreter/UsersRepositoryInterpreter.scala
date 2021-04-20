@@ -8,7 +8,7 @@ import ru.dreamteam.business.User
 import doobie.implicits._
 import ru.dreamteam.business.backends.users.UsersRepository
 import ru.dreamteam.business.backends.users.UsersRepository.UserReq
-import ru.dreamteam.business.backends.users.interpreter.UsersRepositoryInterpreter.{transform, insertUser, selectAll, selectUser}
+import ru.dreamteam.business.backends.users.interpreter.UsersRepositoryInterpreter.{insertUser, selectAll, selectPassword, selectUser, transform}
 import doobie.implicits.toSqlInterpolator
 
 
@@ -29,6 +29,15 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transa
     for {
       id <- insertUser(user.login.login, user.password.password).transact(transactor)
     } yield User.Id(id)
+
+  def checkPassport(login: User.Login, myPassword: User.Password): Boolean = {
+    val selectedPassword = selectPassword(login.login).transact(transactor)
+    selectedPassword match {
+      case Some(x) if x == myPassword => true
+      case None => false
+    }
+  }
+
 }
 
 object UsersRepositoryInterpreter {
@@ -50,6 +59,11 @@ object UsersRepositoryInterpreter {
       .update
       .withUniqueGeneratedKeys[String]("userId")
   }
+
+  def selectPassword(login: String): doobie.ConnectionIO[Option[String]] =
+    sql"SELECT password FROM users WHERE login = $login"
+      .query[String]
+      .option
 
   case class UserRaw(
                         userId: String,

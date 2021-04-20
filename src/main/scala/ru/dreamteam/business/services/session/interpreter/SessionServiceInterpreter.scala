@@ -8,7 +8,7 @@ import ru.dreamteam.business.services.session.SessionService
 // ref MVAR
 class SessionServiceInterpreter[F[_]]() extends SessionService[F] {
 
-  override def generate(userId: User.Id): F[Token] = ???
+  override def generate(login: User.Login): F[Token] = ???
   override def getUser(token: Token): F[User.Id] = ???
 
 }
