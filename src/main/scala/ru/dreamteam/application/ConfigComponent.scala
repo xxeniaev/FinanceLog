@@ -19,5 +19,5 @@ object ConfigComponent {
 }
 
 case class AppConfig(httpConfig: HttpConfig, dbConfig: DBConfig)
-case class HttpConfig(port: Int)
+case class HttpConfig(systemPort: Int, publicPort: Int)
 case class DBConfig(url: String)

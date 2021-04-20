@@ -33,6 +33,7 @@ class SystemModule(
     serverOptions: Http4sServerOptions[Task]
   ): HttpRoutes[Task] = Http4sServerInterpreter.toRoutes(versionEndpoint)
 
+  override def endPoints: List[Endpoint[_, Unit, _, _]] = List(versionEndpoint.endpoint)
 }
 
 object SystemModule {

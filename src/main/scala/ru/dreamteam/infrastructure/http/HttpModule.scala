@@ -8,5 +8,5 @@ import zio.Task
 trait HttpModule[F[_]] {
   def httpRoutes(implicit serverOptions: Http4sServerOptions[F]): HttpRoutes[F]
 
-//  def endPoints: List[Endpoint[_, Unit, _, _]]
+  def endPoints: List[Endpoint[_, Unit, _, _]]
 }

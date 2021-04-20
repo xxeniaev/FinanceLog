@@ -22,8 +22,13 @@ class UserModule(userService: UserService[MainTask])(implicit runtime: zio.Runti
       .in("personal_info")
       .in(query[String]("userId").mapTo(PersonalInfoRequest.apply _))
       .out(jsonBody[Response[PersonalInfoResponse]])
+      .summary("Информация по пользователю")
+      .description("descr")
       .handle(UserHandler(userService))
 
   override def httpRoutes(implicit serverOptions: Http4sServerOptions[Task]): HttpRoutes[Task] =
     Http4sServerInterpreter.toRoutes(personalInfoEndpoint)
+
+  override def endPoints: List[Endpoint[_, Unit, _, _]] = List(personalInfoEndpoint.endpoint)
+
 }
