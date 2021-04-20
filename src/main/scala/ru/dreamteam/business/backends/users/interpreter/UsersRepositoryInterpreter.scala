@@ -30,6 +30,7 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transa
       id <- insertUser(user.login.login, user.password.password).transact(transactor)
     } yield User.Id(id)
 
+  // тут еще подумать, а то ошибочки
   def checkPassport(login: User.Login, myPassword: User.Password): Boolean = {
     val selectedPassword = selectPassword(login.login).transact(transactor)
     selectedPassword match {
