@@ -30,15 +30,12 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transa
       id <- insertUser(user.login.login, user.password.password).transact(transactor)
     } yield User.Id(id)
 
-  // тут еще подумать, а то ошибочки
-  def checkPassport(login: User.Login, myPassword: User.Password): Boolean = {
-    val selectedPassword = selectPassword(login.login).transact(transactor)
-    selectedPassword match {
-      case Some(x) if x == myPassword => true
-      case None => false
-    }
+  def checkPassport(login: User.Login, myPassword: User.Password): F[Boolean] = {
+    val selectedPassword: F[Option[String]] = selectPassword(login.login).transact(transactor)
+    for {
+      password <- selectedPassword.map(pass => pass.getOrElse())
+    } yield password == myPassword
   }
-
 }
 
 object UsersRepositoryInterpreter {
