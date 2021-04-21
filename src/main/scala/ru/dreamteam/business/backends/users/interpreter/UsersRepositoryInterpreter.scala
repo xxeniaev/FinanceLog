@@ -31,4 +31,8 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow](transactor: H2Transactor[F]
 //      .transact(transactor)
     ???
   }
+
+  override def isExistUser(userLogin: User.Login): Boolean = ???
+
+  override def getUserIdByData(userLogin: User.Login, userPassword: User.Password): Option[F[User.Id]] = ???
 }
