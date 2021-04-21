@@ -12,7 +12,7 @@ class UserServiceInterpreter[F[_]: Sync](sessionService: SessionService[F], repo
     for {
       /* Д: пояаились вопросы по UserRepository, а именно насчет метода getUser */
       fromBd <- repo.getUserIdByData(login, password) //получаем id, если login и пароль совпадают
-      //token <- sessionService.generate(fromBd, login) //не могу достать из F[User.Id] User.Id
+      //token <- sessionService.generate(fromBd, login) //не могу достать из F[User.Id] User.Id)
     } yield Sync[F].delay { Token(???) }
   }
 
