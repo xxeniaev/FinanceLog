@@ -28,5 +28,8 @@ class UserServiceInterpreter[F[_]: Sync: BracketThrow: Monad](
 
   override def registration(login: User.Login, password: User.Password): F[User] = ???
 
-  override def userInfo(): F[String] = Sync[F].delay("test")
+  override def userInfo(): F[String] = Sync[F].raiseError(LoginExist("not bad"))
 }
+
+abstract class BusinessError(msg: String, th: Throwable = null) extends Exception(msg, th)
+case class LoginExist(msg: String) extends BusinessError(msg)
