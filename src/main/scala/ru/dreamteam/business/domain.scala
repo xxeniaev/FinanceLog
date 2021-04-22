@@ -2,16 +2,10 @@ package ru.dreamteam.business
 
 import enumeratum.{Enum, EnumEntry}
 import io.estatico.newtype.macros.newtype
-import ru.dreamteam.business.Purchase.PurchaseType
+import ru.dreamteam.business.Purchase.{PurchaseType}
 
 case class App()
 
-case class Currency(name: Currency.CurrencyName, code: Currency.CurrencyCode)
-
-object Currency {
-  @newtype case class CurrencyName(name: String)
-  @newtype case class CurrencyCode(code: String)
-}
 
 
 case class Token(token: String)
@@ -34,7 +28,7 @@ object Purchase {
 
 
   sealed trait PurchaseType extends EnumEntry
-  object Nesting extends Enum[PurchaseType] {
+  object PurchaseType extends Enum[PurchaseType] {
     val values = findValues
 
     case object MARKET extends PurchaseType
@@ -44,4 +38,19 @@ object Purchase {
     case object NECESSARY extends PurchaseType
     case object OTHER extends PurchaseType
   }
+
+
+}
+
+
+sealed trait Currency extends EnumEntry
+object Currency extends Enum[Currency] {
+  val values = findValues
+
+  case object RUB extends Currency
+  case object USD extends Currency
+  case object XXX extends Currency
+
+  def parse(str: String): Currency =
+    Currency.withNameInsensitiveOption(str).getOrElse(XXX)
 }

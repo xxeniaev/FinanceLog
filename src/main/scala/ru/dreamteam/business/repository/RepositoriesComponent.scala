@@ -1,4 +1,4 @@
-package ru.dreamteam.business.repositories
+package ru.dreamteam.business.repository
 
 import cats.effect.{Resource, Sync}
 

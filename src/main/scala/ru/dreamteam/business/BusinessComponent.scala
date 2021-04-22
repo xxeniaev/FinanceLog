@@ -1,7 +1,7 @@
 package ru.dreamteam.business
 
 import cats.effect.{Resource, Sync}
-import ru.dreamteam.business.repositories.RepositoriesComponent
+import ru.dreamteam.business.repository.RepositoriesComponent
 import ru.dreamteam.business.services.ServicesComponent
 
 case class BusinessComponent[F[_]](

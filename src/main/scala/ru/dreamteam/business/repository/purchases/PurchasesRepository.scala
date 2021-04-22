@@ -1,7 +1,7 @@
-package ru.dreamteam.business.backends.purchases
+package ru.dreamteam.business.repository.purchases
 
 import ru.dreamteam.business.Purchase.PurchaseType
-import ru.dreamteam.business.backends.purchases.PurchasesRepository.PurchaseRequest
+import ru.dreamteam.business.repository.purchases.PurchasesRepository.PurchaseRequest
 import ru.dreamteam.business.{Money, Purchase, User}
 
 

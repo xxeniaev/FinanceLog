@@ -1,7 +1,7 @@
-package ru.dreamteam.business.backends.users
+package ru.dreamteam.business.repository.users
 
 import ru.dreamteam.business.{User}
-import ru.dreamteam.business.backends.users.UsersRepository.UserReq
+import ru.dreamteam.business.repository.users.UsersRepository.UserReq
 
 trait UsersRepository[F[_]] {
   def findAll(): F[List[User]]
