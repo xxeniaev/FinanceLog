@@ -12,16 +12,21 @@ import ru.dreamteam.business.services.users.UserService
 import ru.dreamteam.business.repository.users.UsersRepository
 import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.UserRaw
 
-class UserServiceInterpreter[F[_]: Sync: BracketThrow: Monad](sessionService: SessionService[F], repo: UsersRepository[F]) extends UserService[F] {
-  override def login(login: User.Login, password: User.Password): F[Token] = {
+class UserServiceInterpreter[F[_]: Sync: BracketThrow: Monad](
+//  sessionService: SessionService[F],
+//  repo: UsersRepository[F]
+) extends UserService[F] {
+
+  override def login(login: User.Login, password: User.Password): F[Token] =
 //    for {
 //      fromBd <- Sync[F].delay { User(???, ???) } // repo.get
 //      // проверить пароль
 //      isPasswordCorrect <- repo.checkPassword(login, password)
 //      token <- sessionService.generate(login)
 //    } yield Token (???) // token
-  ???
-  }
+    ???
 
   override def registration(login: User.Login, password: User.Password): F[User] = ???
+
+  override def userInfo(): F[String] = Sync[F].delay("test")
 }

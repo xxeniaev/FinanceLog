@@ -65,10 +65,10 @@ object PurchaseRepositoryInterpreter {
       .query[PurchaseRaw]
       .option
 
-  def insertPurchase(userId: String, purchase: PurchaseRequest): doobie.ConnectionIO[String] =
-    sql"INSERT INTO purchases (amount, currency, comment, category, userId) VALUES (${purchase.money.amount}, ${purchase.money.currency}, ${purchase.comment}, ${purchase.category.entryName}, $userId)"
-      .update
-      .withUniqueGeneratedKeys[String]("purchaseId")
+  def insertPurchase(userId: String, purchase: PurchaseRequest): doobie.ConnectionIO[String] = ???
+//    sql"INSERT INTO purchases (amount, currency, comment, category, userId) VALUES (${purchase.money.amount}, ${purchase.money.currency}, ${purchase.comment}, ${purchase.category.entryName}, $userId)"
+//      .update
+//      .withUniqueGeneratedKeys[String]("purchaseId")
 
   case class PurchaseRaw(
     purchaseId: String,

@@ -10,6 +10,6 @@ object UserHandler {
   def apply[R](
     userService: UserService[MainTask]
   )(req: PersonalInfoRequest): ZIO[MainEnv, Throwable, PersonalInfoResponse] =
-    userService.userInfo().map(info => PersonalInfoResponse(info))
+    userService.userInfo().map(info => PersonalInfoResponse(info + req.userId))
 
 }
