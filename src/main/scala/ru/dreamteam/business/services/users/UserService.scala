@@ -6,7 +6,7 @@ import cats.effect.Resource
 import scala.concurrent.Future
 
 trait UserService[F[_]] {
-  def login(login: User.Login, password: User.Password): Option[F[Token]]
-  def registration(login: User.Login, password: User.Password): Option[F[User]]
-  /*Д: что делать, если существует пользователь с таким именем? Пока сделал, что возвращает None*/
+  def login(login: User.Login, password: User.Password): F[Token]
+  def registration(login: User.Login, password: User.Password): F[User] // проверили что такого нет, записали, вернули созданного
+  def userInfo(): F[String]
 }

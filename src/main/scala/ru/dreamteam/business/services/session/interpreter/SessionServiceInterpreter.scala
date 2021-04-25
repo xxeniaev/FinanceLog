@@ -13,8 +13,8 @@ class SessionServiceInterpreter[F[_] : Sync]() extends SessionService[F] {
 
   private val idTokenTable = Map.empty[Token, User]
 
-  override def generate(userId: User.Id, userLogin: User.Login): F[Token] = Sync[F].delay {
-    Token(f"login:${userLogin.login} id:${userId.id}")
+  override def generate(login: User.Login): F[Token] = Sync[F].delay {
+    Token(f"login:${login}")
   }
 
   override def getUser(token: Token): F[User.Id] = Sync[F].delay {
