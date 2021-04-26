@@ -4,6 +4,6 @@ import ru.dreamteam.business.{Token, User}
 
 trait SessionService[F[_]] {
   def generate(login: User.Login): F[Token]
-  def getUser(token: Token): F[User.Id]
-  def deleteUserToken(token: Token): F[Unit]
+  def getUserId(token: Token): F[User.Id]
+  def removeToken(token: Token): F[Unit]
 }

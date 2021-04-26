@@ -11,17 +11,17 @@ import scala.collection.immutable.Map
 // ref MVAR
 class SessionServiceInterpreter[F[_] : Sync]() extends SessionService[F] {
 
-  private val idTokenTable = Map.empty[Token, User]
+  private val idTokenTable = Map.empty[Token, User] //переделать под ассинхронность
 
   override def generate(login: User.Login): F[Token] = Sync[F].delay {
-    Token(f"login:${login}")
+    Token(s"login:${login}")
   }
 
-  override def getUser(token: Token): F[User.Id] = Sync[F].delay {
+  override def getUserId(token: Token): F[User.Id] = Sync[F].delay {
     idTokenTable.get(token)
-  }
+  } //переделать под асинхронность
 
-  override def deleteUserToken(token: Token): F[Unit] = Sync[F].delay {
+  override def removeToken(token: Token): F[Unit] = Sync[F].delay {
     idTokenTable.removed(token)
-  }
+  } //переделать под асинхронность
 }

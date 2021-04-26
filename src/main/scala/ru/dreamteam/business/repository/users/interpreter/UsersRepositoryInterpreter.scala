@@ -28,6 +28,7 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transa
     id <- insertUser(user.login.login, user.password.password).transact(transactor)
   } yield User.Id(id)
 
+  override def findUserByLogin(login: User.Login): F[Option[User]] = ???
 }
 
 object UsersRepositoryInterpreter {

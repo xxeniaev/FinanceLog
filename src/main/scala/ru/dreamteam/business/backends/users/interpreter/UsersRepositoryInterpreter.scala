@@ -31,4 +31,6 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow](transactor: H2Transactor[F]
 //      .transact(transactor)
     ???
   }
+
+  override def getUserByLogin(login: User.Login): F[Option[User]] = ???
 }
