@@ -3,6 +3,7 @@ package ru.dreamteam.business.repository.purchases.interpreter
 import cats.Monad
 import cats.syntax.all._
 import cats.effect.BracketThrow
+import doobie.ConnectionIO
 import doobie.h2.H2Transactor
 import ru.dreamteam.business.{Currency, Money, Purchase, User}
 import doobie.implicits._
@@ -47,7 +48,7 @@ object PurchaseRepositoryInterpreter {
   // val c = currency
   // Purchase(???)
   // })
-  def selectByUserId(userId: String): doobie.ConnectionIO[List[PurchaseRaw]] =
+  def selectByUserId(userId: String): ConnectionIO[List[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE userId = $userId"
       .query[PurchaseRaw]
       .to[List]
@@ -60,12 +61,12 @@ object PurchaseRepositoryInterpreter {
       .query[PurchaseRaw]
       .to[List]
 
-  def selectByPurchaseId(userId: String, pId: String): doobie.ConnectionIO[Option[PurchaseRaw]] =
+  def selectByPurchaseId(userId: String, pId: String): ConnectionIO[Option[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE purchaseId = $pId AND userId = $userId"
       .query[PurchaseRaw]
       .option
 
-  def insertPurchase(userId: String, purchase: PurchaseRequest): doobie.ConnectionIO[String] = ???
+  def insertPurchase(userId: String, purchase: PurchaseRequest): ConnectionIO[String] = ???
 //    sql"INSERT INTO purchases (amount, currency, comment, category, userId) VALUES (${purchase.money.amount}, ${purchase.money.currency}, ${purchase.comment}, ${purchase.category.entryName}, $userId)"
 //      .update
 //      .withUniqueGeneratedKeys[String]("purchaseId")
