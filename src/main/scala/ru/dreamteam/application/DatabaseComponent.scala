@@ -1,16 +1,17 @@
 package ru.dreamteam.application
 
-import java.util.Properties
 import java.util.concurrent.Executors
-import cats.effect.{Async, Blocker, ContextShift, Resource}
+import cats.effect.{Async, Blocker, ContextShift}
 import com.zaxxer.hikari.HikariConfig
-import doobie.free.connection.ConnectionIO
+import doobie.syntax._
+import doobie.implicits._
+
 import doobie.hikari.HikariTransactor
 import doobie.implicits.toSqlInterpolator
 import doobie.util.transactor.Transactor
-import ru.dreamteam.examples.Doobie.transactor
-
+import cats.effect.Resource
 import scala.concurrent.ExecutionContext
+import cats.syntax.all._
 
 case class DatabaseComponent[F[_]](transactor: Transactor[F])
 
@@ -35,7 +36,7 @@ object DatabaseComponent {
 
     val createUsers = sql"""
       CREATE TABLE IF NOT EXISTS users (
-        id   VARCHAR,
+        id   bigint auto_increment primary key,
         login VARCHAR NOT NULL UNIQUE,
         password  VARCHAR NOT NULL
       )
@@ -43,28 +44,26 @@ object DatabaseComponent {
 
     val createPurchases = sql"""
       CREATE TABLE IF NOT EXISTS purchases (
-        id   VARCHAR,
-        amount DECIMAL,
-        currency VARCHAR,
+        id   bigint auto_increment primary key,
+        amount DECIMAL NOT NULL,
+        currency VARCHAR NOT NULL,
         comment VARCHAR,
-        category VARCHAR 
+        category VARCHAR NOT NULL
       )
     """.update
 
-    // это что и зачем
+
+    def createTables(transactor: Transactor[F]): F[Unit] = {
+      for {
+        _ <- createUsers.run.transact(transactor)
+        _ <- createPurchases.run.transact(transactor)
+      } yield ()
+    }
+
     for {
       main <- createTransactor(dbConfig)
+      _    <- Resource.liftF(createTables(main))
     } yield DatabaseComponent(main)
-
-//    def createTables(transactor: Transactor[F]): F[Unit] = {
-//      val createConnection: ConnectionIO[Unit] = for {
-//        _ <- createUsers.run
-//        _ <- createPurchases.run
-//      } yield ()
-////      createConnection.transact(transactor).unsafeRunSync()
-//      ???
-//    }
-//    ???
   }
 
 }
