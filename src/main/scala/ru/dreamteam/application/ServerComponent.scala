@@ -40,8 +40,9 @@ object ServerComponent {
 
     def bind(httpModules: List[HttpModule[F]], port: Int): Resource[MainTask, Server[F]] = {
 
-      val docs: OpenAPI = OpenAPIDocsInterpreter.toOpenAPI(httpModules.flatMap(_.endPoints), "My Bookshop", "1.0")
-      val swagger = new SwaggerHttp4s(docs.toYaml)
+      val docs: OpenAPI =
+        OpenAPIDocsInterpreter.toOpenAPI(httpModules.flatMap(_.endPoints), "My Bookshop", "1.0")
+      val swagger       = new SwaggerHttp4s(docs.toYaml)
 
       BlazeServerBuilder[F](runtime.platform.executor.asEC)
         .bindHttp(port, "localhost")
