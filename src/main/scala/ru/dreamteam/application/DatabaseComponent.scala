@@ -33,11 +33,6 @@ object DatabaseComponent {
       } yield xa
     }
 
-    // это что и зачем
-    for {
-      main <- createTransactor(dbConfig)
-    } yield DatabaseComponent(main)
-
     val createUsers = sql"""
       CREATE TABLE IF NOT EXISTS users (
         id   VARCHAR,
@@ -56,15 +51,20 @@ object DatabaseComponent {
       )
     """.update
 
-    def createTables(transactor: Transactor[F]): F[Unit] = {
-      val createConnection: ConnectionIO[Unit] = for {
-        _ <- createUsers.run
-        _ <- createPurchases.run
-      } yield ()
-//      createConnection.transact(transactor).unsafeRunSync()
-      ???
-    }
-    ???
+    // это что и зачем
+    for {
+      main <- createTransactor(dbConfig)
+    } yield DatabaseComponent(main)
+
+//    def createTables(transactor: Transactor[F]): F[Unit] = {
+//      val createConnection: ConnectionIO[Unit] = for {
+//        _ <- createUsers.run
+//        _ <- createPurchases.run
+//      } yield ()
+////      createConnection.transact(transactor).unsafeRunSync()
+//      ???
+//    }
+//    ???
   }
 
 }
