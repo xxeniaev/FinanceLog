@@ -55,41 +55,42 @@ object PurchaseRepositoryInterpreter {
   // val c = currency
   // Purchase(???)
   // })
-  def selectByUserId(userId: String): ConnectionIO[List[PurchaseRaw]] =
+  def selectByUserId(userId: Int): ConnectionIO[List[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE userId = $userId"
       .query[PurchaseRaw]
       .to[List]
 
   def selectByCategory(
-    userId: String,
+    userId: Int,
     category: PurchaseCategory
   ): doobie.ConnectionIO[List[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE category = ${category.entryName} AND userId = $userId"
       .query[PurchaseRaw]
       .to[List]
 
-  def selectByPurchaseId(userId: String, pId: String): ConnectionIO[Option[PurchaseRaw]] =
-    sql"SELECT purchaseId, money, comment, category FROM purchases WHERE purchaseId = $pId AND userId = $userId"
+  def selectByPurchaseId(userId: Int, purchaseId: Int): ConnectionIO[Option[PurchaseRaw]] =
+    sql"SELECT purchaseId, money, comment, category FROM purchases WHERE purchaseId = $purchaseId AND userId = $userId"
       .query[PurchaseRaw]
       .option
 
   def insertPurchase(
-    userId: String,
+    userId: Int,
     amount: BigDecimal,
     currency: String,
     comment: String,
     category: String
-  ): ConnectionIO[String] =
+  ): ConnectionIO[Int] =
     sql"INSERT INTO purchases (amount, currency, comment, category, userId) VALUES ($amount, $currency, $comment, $category, $userId)"
       .update
-      .withUniqueGeneratedKeys[String]("purchaseId")
+      .withUniqueGeneratedKeys[Int]("purchaseId")
 
   case class PurchaseRaw(
-    purchaseId: String,
+    purchaseId: Int,
     amount: BigDecimal,
     currency: String,
     comment: String,
-    category: String
+    category: String,
+    userId: Int
   )
 
 }

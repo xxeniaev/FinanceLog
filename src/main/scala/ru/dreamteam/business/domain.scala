@@ -2,7 +2,7 @@ package ru.dreamteam.business
 
 import enumeratum.{Enum, EnumEntry}
 import io.estatico.newtype.macros.newtype
-import ru.dreamteam.business.Purchase.{PurchaseCategory}
+import ru.dreamteam.business.Purchase.PurchaseCategory
 
 case class App()
 
@@ -12,7 +12,7 @@ case class Money(amount: BigDecimal, currency: Currency)
 // new type usage
 
 object User {
-  @newtype case class Id(id: String)
+  @newtype case class Id(id: Int)
   @newtype case class Login(login: String)
   @newtype case class Password(password: String)
 }
@@ -25,7 +25,7 @@ case class Purchase(
 )
 
 object Purchase {
-  @newtype case class Id(id: String)
+  @newtype case class Id(id: Int)
   @newtype case class Comment(comment: String)
 
   sealed trait PurchaseCategory extends EnumEntry

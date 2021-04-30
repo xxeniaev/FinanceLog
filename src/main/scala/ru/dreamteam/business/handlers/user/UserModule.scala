@@ -2,7 +2,7 @@ package ru.dreamteam.business.handlers.user
 
 import org.http4s.HttpRoutes
 import ru.dreamteam.infrastructure.http.{HttpModule, Response}
-import ru.dreamteam.infrastructure.{http, MainTask}
+import ru.dreamteam.infrastructure.{MainTask}
 import sttp.tapir.{endpoint, query, Endpoint}
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.tethysjson.jsonBody
@@ -11,6 +11,7 @@ import zio._
 import cats.syntax.all._
 import ru.dreamteam.business.handlers.user.handlers.UserHandler
 import ru.dreamteam.business.services.users.UserService
+import sttp.tapir.server.ServerEndpoint
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 
@@ -19,13 +20,36 @@ class UserModule(userService: UserService[MainTask])(
   runtime: zio.Runtime[Unit]
 ) extends HttpModule[Task] {
 
+  // после in'ов и out'ов идея показывает No implicit arg of type, это нормально?
+
   val personalInfoEndpoint = endpoint
     .get
     .in("personal_info")
     .in(query[String]("userId").mapTo(PersonalInfoRequest.apply _))
     .out(jsonBody[Response[PersonalInfoResponse]])
     .summary("Информация по пользователю")
-    .description("descr")
+    .description("Информация по пользователю")
+    .handle(UserHandler(userService))
+
+  val registrationEndpoint = endpoint
+    .get
+    .in("register")
+    // если два метода in, то как делать apply по каждому отдельно?
+    .in(query[String]("login").mapTo(RegistrationRequest.apply(???, ???) _))
+    .in(query[String]("password").mapTo(RegistrationRequest.apply(???, ???) _))
+    .out(jsonBody[Response[RegistrationResponse]])
+    .summary("Регистрация пользователя")
+    .description("Пользователь регистрируется, указывая логин и пароль")
+    .handle(UserHandler(userService))
+
+  val loginEndpoint = endpoint
+    .get
+    .in("login")
+    .in(query[String]("login").mapTo(LoginRequest.apply(???, ???) _))
+    .in(query[String]("password").mapTo(LoginRequest.apply(???, ???) _))
+    .out(jsonBody[Response[LoginResponse]])
+    .summary("Вход пользователя")
+    .description("Пользователь логинится, указывая свои логин и пароль")
     .handle(UserHandler(userService))
 
   override def httpRoutes(
@@ -33,6 +57,7 @@ class UserModule(userService: UserService[MainTask])(
     serverOptions: Http4sServerOptions[Task]
   ): HttpRoutes[Task] = Http4sServerInterpreter.toRoutes(personalInfoEndpoint)
 
-  override def endPoints: List[Endpoint[_, Unit, _, _]] = List(personalInfoEndpoint.endpoint)
+  override def endPoints: List[Endpoint[_, Unit, _, _]] =
+    List(personalInfoEndpoint.endpoint, registrationEndpoint.endpoint, loginEndpoint.endpoint)
 
 }
