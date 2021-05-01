@@ -1,6 +1,6 @@
 package ru.dreamteam.business.services.purchases
 
-import ru.dreamteam.business.Purchase.PurchaseType
+import ru.dreamteam.business.Purchase.PurchaseCategory
 import ru.dreamteam.business.{Money, Purchase, User}
 
 trait PurchasesService[F[_]] {
@@ -12,7 +12,13 @@ trait PurchasesService[F[_]] {
   */
   def getPurchase(userId: User.Id): F[List[Purchase]]
 
-  def getPurchaseByType(userId: User.Id, purchaseType: PurchaseType): F[List[Purchase]]
+  def getPurchaseByType(userId: User.Id, purchaseCategory: PurchaseCategory): F[List[Purchase]]
 
-  def addPurchase(userId: User.Id, money: Money, comment: String, `type`: PurchaseType)
+  def addPurchase(
+    userId: User.Id,
+    money: Money,
+    comment: String,
+    purchaseCategory: PurchaseCategory
+  )
+
 }
