@@ -42,7 +42,7 @@ class SessionServiceInterpreter[F[_] : Sync]() extends SessionService[F] {
     for {
       keys <- tokenTableRef.get.map(_.keys)
       s = keys.map(x => print(x, tokenTableRef.get.map(_.get(x))))
-    } yield Unit
+    } yield ()
     print("______")
   }
 

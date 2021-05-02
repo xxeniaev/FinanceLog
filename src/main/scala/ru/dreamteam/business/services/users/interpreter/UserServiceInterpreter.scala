@@ -30,6 +30,8 @@ class UserServiceInterpreter[F[_] : Sync : BracketThrow : Monad](repo: UsersRepo
     token <- sessionService.generate(login)
     _ <- sessionService.addTokenUser(token, user)
   } yield user
+
+  override def userInfo(): F[String] = ???
 }
 
 abstract class BusinessError(msg: String, th: Throwable = null) extends Exception(msg, th)

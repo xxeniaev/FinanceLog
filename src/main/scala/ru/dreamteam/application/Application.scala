@@ -23,7 +23,7 @@ class Application {
     implicit0(runtime: zio.Runtime[Unit]) = executorsComp.main
     databaseComp <- DatabaseComponent.build[MainTask](configComp.appConfig.dbConfig)
     // httpClientComp <- HttpClientComponent
-    businessComp <- BusinessComponent.build[MainTask](databaseComp.transactor)
+    businessComp <- BusinessComponent.build[MainTask](databaseComp)
     server <- ServerComponent.build(
       Modules(
         system = List(new SystemModule()(executorsComp.main)),
