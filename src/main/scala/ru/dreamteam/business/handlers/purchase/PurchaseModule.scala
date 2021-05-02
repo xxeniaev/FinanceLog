@@ -11,37 +11,47 @@ import zio._
 import cats.syntax.all._
 import ru.dreamteam.business.Purchase
 import ru.dreamteam.business.handlers.purchase.handlers.PurchaseHandler
-import ru.dreamteam.business.handlers.user.{PersonalInfoRequest, PersonalInfoResponse}
-import ru.dreamteam.business.handlers.user.handlers.UserHandler
 import ru.dreamteam.business.services.purchases.PurchasesService
-import ru.dreamteam.business.services.users.UserService
 import sttp.tapir.server.ServerEndpoint
 import zio.interop.catz._
 import zio.interop.catz.implicits._
+import sttp.tapir._
+import sttp.tapir.generic.auto._
 
 class PurchaseModule(purchaseService: PurchasesService[MainTask])(
   implicit
   runtime: zio.Runtime[Unit]
 ) extends HttpModule[Task] {
+  // это все эндпоинты, которые пришли в голову, еще какие-то надо мб?
 
   val purchaseInfoEndpoint = endpoint
     .get
     .in("purchase_info")
-    .in(query[String]("userId").mapTo(PersonalInfoRequest.apply _))
+    .in(query[String]("userId").mapTo(PurchaseInfoRequest.apply _))
     .out(jsonBody[Response[PurchaseInfoResponse]])
     .summary("Информация по пользователю")
     .handle(PurchaseHandler(purchaseService))
 
-  val getPurchaseByIdEndpiont = ???
-
-  val getUserPurchasesEndpiont = ???
+  val getUserPurchasesEndpiont = endpoint
+    .get
+    .in("get_purchases")
+    .in(query[String]("userId").mapTo(GetPurchasesRequest.apply _))
+    .out(jsonBody[Response[GetPurchasesResponse]])
+    .summary("Получение покупок пользователя")
+    .handle(PurchaseHandler(purchaseService))
 
   val getPurchasesByTypeEndpiont = endpoint
     .get
-    .in("get_by_type")
-    .in(query[List[Any]]("params"))
-
-  ???
+//    .in("get_purchases_by_type")
+    // на уверена, что так надо, но похоже на правду
+    .in(
+      ("get_purchases_by_type" / path[Int]("userId") / path[String]("purchaseType")).mapTo(
+        GetPurchaseByTypeRequest
+      )
+    )
+    .out(jsonBody[Response[GetPurchaseByTypeResponse]])
+    .summary("Получение покупок по типу")
+    .handle(PurchaseHandler(purchaseService))
 
   val addPurchaseEndpiont = endpoint
     .post
@@ -51,12 +61,18 @@ class PurchaseModule(purchaseService: PurchasesService[MainTask])(
     .summary("Добавление покупки")
     .handle(PurchaseHandler(purchaseService))
 
+  // тут чет не особо поняла про роуты, почитаю ещё, поразбираюсь
+  // нужно их несколько создать?
   override def httpRoutes(
     implicit
     serverOptions: Http4sServerOptions[Task]
   ): HttpRoutes[Task] = Http4sServerInterpreter.toRoutes(purchaseInfoEndpoint)
 
-  override def endPoints: List[Endpoint[_, Unit, _, _]] =
-    List(purchaseInfoEndpoint.endpoint, addPurchaseEndpiont.endpoint)
+  override def endPoints: List[Endpoint[_, Unit, _, _]] = List(
+    purchaseInfoEndpoint.endpoint,
+    getUserPurchasesEndpiont.endpoint,
+    getPurchasesByTypeEndpiont.endpoint,
+    addPurchaseEndpiont.endpoint
+  )
 
 }
