@@ -9,17 +9,20 @@ import ru.dreamteam.business.services.users.UserService
 import ru.dreamteam.business.services.users.interpreter.UserServiceInterpreter
 import cats.syntax.all._
 import doobie.hikari.HikariTransactor
+import ru.dreamteam.business.repository.RepositoriesComponent
+import ru.dreamteam.business.services.purchases.PurchasesService
+import ru.dreamteam.business.services.purchases.interpreter.PurchasesServiceInterpreter
+import ru.dreamteam.business.services.session.SessionService
 
 
-case class ServicesComponent[F[_]](userService: UserService[F])
+case class ServicesComponent[F[_]](userService: UserService[F], sessionService: SessionService[F], purchasesService: PurchasesService[F])
 
 object ServicesComponent {
 
-  def build[F[_] : Sync](transactor: Transactor[F]): Resource[F, ServicesComponent[F]] = {
-
-    val repo = new UsersRepositoryInterpreter[F](transactor)
+  def build[F[_] : Sync](repositoriesComp: RepositoriesComponent[F]): Resource[F, ServicesComponent[F]] = {
     val sessionService = new SessionServiceInterpreter[F]
-    val userService = new UserServiceInterpreter[F](sessionService = sessionService, repo = repo)
-    Resource.pure(ServicesComponent(userService))
+    val userService = new UserServiceInterpreter[F](sessionService = sessionService, repo = repositoriesComp.userRepo)
+    val purchasesService = new PurchasesServiceInterpreter[F](repo = repositoriesComp.purchaseRepo)
+    Resource.pure(ServicesComponent(userService, sessionService, purchasesService))
   }
 }
