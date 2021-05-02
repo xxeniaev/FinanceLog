@@ -9,6 +9,7 @@ case class App()
 case class Token(token: String)
 case class User(userId: User.Id, login: User.Login, password: User.Password)
 case class Money(amount: BigDecimal, currency: Currency)
+case class Credentials(login: String, password: String)
 // new type usage
 
 object User {

@@ -2,13 +2,15 @@ package ru.dreamteam.business.handlers.user
 
 import org.http4s.HttpRoutes
 import ru.dreamteam.infrastructure.http.{HttpModule, Response}
-import ru.dreamteam.infrastructure.{MainTask}
+import ru.dreamteam.infrastructure.MainTask
 import sttp.tapir.{endpoint, query, Endpoint}
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.tethysjson.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
 import zio._
 import cats.syntax.all._
+import ru.dreamteam.application.DatabaseComponent
+import ru.dreamteam.business.Credentials
 import ru.dreamteam.business.handlers.user.handlers.UserHandler
 import ru.dreamteam.business.services.users.UserService
 import sttp.tapir.server.ServerEndpoint
@@ -20,38 +22,33 @@ class UserModule(userService: UserService[MainTask])(
   runtime: zio.Runtime[Unit]
 ) extends HttpModule[Task] {
 
-  // после in'ов и out'ов идея показывает No implicit arg of type, это нормально?
-
   val personalInfoEndpoint = endpoint
     .get
     .in("personal_info")
     .in(query[String]("userId").mapTo(PersonalInfoRequest.apply _))
     .out(jsonBody[Response[PersonalInfoResponse]])
     .summary("Информация по пользователю")
-    .description("Информация по пользователю")
     .handle(UserHandler(userService))
 
   val registrationEndpoint = endpoint
-    .get
+    .post
     .in("register")
-    // если два метода in, то как делать apply по каждому отдельно?
-    .in(query[String]("login").mapTo(RegistrationRequest.apply(???, ???) _))
-    .in(query[String]("password").mapTo(RegistrationRequest.apply(???, ???) _))
+    .in(jsonBody[Credentials])
     .out(jsonBody[Response[RegistrationResponse]])
     .summary("Регистрация пользователя")
-    .description("Пользователь регистрируется, указывая логин и пароль")
+    .description("Пользователь регистрируется, создавая логин и пароль")
     .handle(UserHandler(userService))
 
   val loginEndpoint = endpoint
-    .get
+    .post
     .in("login")
-    .in(query[String]("login").mapTo(LoginRequest.apply(???, ???) _))
-    .in(query[String]("password").mapTo(LoginRequest.apply(???, ???) _))
+    .in(jsonBody[Credentials])
     .out(jsonBody[Response[LoginResponse]])
     .summary("Вход пользователя")
     .description("Пользователь логинится, указывая свои логин и пароль")
     .handle(UserHandler(userService))
 
+  // что это не понятно
   override def httpRoutes(
     implicit
     serverOptions: Http4sServerOptions[Task]

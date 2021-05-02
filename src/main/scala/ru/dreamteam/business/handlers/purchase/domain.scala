@@ -2,6 +2,7 @@ package ru.dreamteam.business.handlers.purchase
 
 import derevo.derive
 import derevo.tethys._
+import ru.dreamteam.business.Purchase
 import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepositoryInterpreter.PurchaseRaw
 import sttp.tapir.description
 
@@ -18,7 +19,7 @@ case class GetPurchasesRequest(userId: Int)
 @derive(tethysReader, tethysWriter)
 @description("Получить все покупки")
 case class GetPurchasesResponse(
-  @description("Покупки пользователя") purchases: List[PurchaseRaw]
+  @description("Покупки пользователя") purchases: List[Purchase]
 )
 
 case class GetPurchaseByTypeRequest(userId: Int, purchaseCategory: String)
@@ -26,7 +27,7 @@ case class GetPurchaseByTypeRequest(userId: Int, purchaseCategory: String)
 @derive(tethysReader, tethysWriter)
 @description("Получить все покупки заданного типа")
 case class GetPurchaseByTypeResponse(
-  @description("Покупки пользователя") purchases: List[PurchaseRaw]
+  @description("Покупки пользователя") purchases: List[Purchase]
 )
 
 case class AddPurchaseRequest(
@@ -40,5 +41,5 @@ case class AddPurchaseRequest(
 @derive(tethysReader, tethysWriter)
 @description("Добавление покупки")
 case class AddPurchaseResponse(
-  @description("Идентификатор покупки") id: Int
+  @description("Идентификатор покупки") purchase: Purchase
 )
