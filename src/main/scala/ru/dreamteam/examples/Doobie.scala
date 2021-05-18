@@ -33,16 +33,7 @@ object Doobie extends App {
 
       // Construct and run your server here!
       for {
-        // comp1 <- Component1.build[]()
-        _ <- sql"create table foo(i int)".update.run.transact(xa)
-        _ <- sql"insert into foo (i) values (1)".update.run.transact(xa)
-        _ <- sql"insert into foo (i) values (2)".update.run.transact(xa)
-        _ <- sql"insert into foo (i) values (3)".update.run.transact(xa)
-        _ <- sql"insert into foo (i) values (4)".update.run.transact(xa)
-        _ <- sql"insert into foo (i) values (5)".update.run.transact(xa)
-        // server <- ServerComp.build()
-        n <- sql"select * from foo".query[Int].to[List].transact(xa)
-        _ <- IO(println(n))
+        _ <- IO(println("да"))
       } yield ()
 
     }

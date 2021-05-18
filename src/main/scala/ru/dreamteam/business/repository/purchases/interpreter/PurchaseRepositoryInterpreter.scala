@@ -3,7 +3,7 @@ package ru.dreamteam.business.repository.purchases.interpreter
 import cats.Monad
 import cats.syntax.all._
 import cats.effect.BracketThrow
-import doobie.ConnectionIO
+import doobie.{ConnectionIO, Transactor}
 import doobie.h2.H2Transactor
 import ru.dreamteam.business.{Currency, Money, Purchase, User}
 import doobie.implicits._
@@ -12,7 +12,7 @@ import ru.dreamteam.business.repository.purchases.PurchasesRepository
 import ru.dreamteam.business.repository.purchases.PurchasesRepository.PurchaseRequest
 import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepositoryInterpreter.{insertPurchase, selectByCategory, selectByPurchaseId, selectByUserId, transform}
 
-class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F])
+class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: Transactor[F])
   extends PurchasesRepository[F] {
 
   override def findByUserId(userId: User.Id): F[List[Purchase]] = for {

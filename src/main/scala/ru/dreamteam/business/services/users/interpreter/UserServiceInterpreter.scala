@@ -1,35 +1,46 @@
 package ru.dreamteam.business.services.users.interpreter
 
-import cats.Monad
-import cats.effect.{BracketThrow, Sync}
+import cats.{ApplicativeError, Monad, MonadError, MonadThrow}
+import cats.effect.{Bracket, BracketThrow, Sync}
 import cats.syntax.all._
-import doobie.implicits.toSqlInterpolator
-import ru.dreamteam.business.User.Password
-import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepositoryInterpreter.PurchaseRaw
-import ru.dreamteam.business.services.session.SessionService
-import ru.dreamteam.business.{Token, User}
-import ru.dreamteam.business.services.users.UserService
 import ru.dreamteam.business.repository.users.UsersRepository
-import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.UserRaw
+import ru.dreamteam.business.repository.users.UsersRepository.UserReq
+import ru.dreamteam.business.services.session.SessionService
+import ru.dreamteam.business.services.users.UserService
+import ru.dreamteam.business.{Token, User}
 
-class UserServiceInterpreter[F[_]: Sync: BracketThrow: Monad](
-//  sessionService: SessionService[F],
-//  repo: UsersRepository[F]
-) extends UserService[F] {
+// внимательно подходить к тайпбаундам
+class UserServiceInterpreter[F[_] : MonadThrow](repo: UsersRepository[F], sessionService: SessionService[F]) extends UserService[F] {
 
   override def login(login: User.Login, password: User.Password): F[Token] =
-//    for {
-//      fromBd <- Sync[F].delay { User(???, ???) } // repo.get
-//      // проверить пароль
-//      isPasswordCorrect <- repo.checkPassword(login, password)
-//      token <- sessionService.generate(login)
-//    } yield Token (???) // token
-    ???
+    for {
+      fromBd <- repo.findUserByLogin(login)
+      user <- MonadThrow[F].fromOption(fromBd, LoginNotExist(s"$login not exist"))
+      _ <- MonadThrow[F].raiseError(PasswordNotCorrect(s"$password not corrected")).unlessA(checkUserPassword(user, password))
+      tokenString <- sessionService.generate(user.login)
+    } yield tokenString
 
-  override def registration(login: User.Login, password: User.Password): F[User] = ???
+  def checkUserPassword(user: User, inputPassword: User.Password): Boolean = user.password == inputPassword
 
-  override def userInfo(): F[String] = Sync[F].raiseError(LoginExist("not bad"))
+  override def registration(login: User.Login, password: User.Password): F[User] = for {
+    fromBd <- repo.findUserByLogin(login)
+    _ <- MonadThrow[F].raiseError(LoginExist(s"$login exist")).whenA(fromBd.isEmpty)
+    userId <- repo.addUser(UserReq(login, password))
+    // уже будет не надо
+    user = User(userId, login, password)
+
+  // не должны давать токен после регистрации
+//    token <- sessionService.generate(login)
+//    _ <- sessionService.addTokenUser(token, user)
+  } yield user
+
+  override def userInfo(): F[String] = ???
 }
 
 abstract class BusinessError(msg: String, th: Throwable = null) extends Exception(msg, th)
+
 case class LoginExist(msg: String) extends BusinessError(msg)
+
+case class PasswordNotCorrect(msg: String) extends BusinessError(msg)
+
+case class LoginNotExist(msg: String) extends BusinessError(msg)
