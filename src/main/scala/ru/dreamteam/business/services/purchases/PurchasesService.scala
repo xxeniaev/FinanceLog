@@ -14,8 +14,10 @@ trait PurchasesService[F[_]] {
     money: Money,
     comment: String,
     purchaseCategory: PurchaseCategory
-  ): F[Purchase.Id]
+  ): F[Purchase]
 
+  // нормально ли, что функция выдает строку? где эта строка формируется?
+  // подумала, что она должна выдавать userId, pId, amount и тд
   def purchaseInfo(userId: User.Id, purchaseId: Purchase.Id): F[String]
 
 }

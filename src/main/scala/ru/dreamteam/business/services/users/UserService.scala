@@ -11,9 +11,9 @@ trait UserService[F[_]] {
   def registration(
     login: User.Login,
     password: User.Password
-  ): F[User.Id] // проверили что такого нет, записали, вернули созданного
+  ): F[User] // проверили что такого нет, записали, вернули созданного
 
   // почему этот метод не принимает аргументов (юзер ид)?
   // p.s. сделала метод получения инфы по покупке тоже, но он там принимает аргс(юзер ид, пурчейс ид), если что исправлю
-  def userInfo(): F[String]
+  def userInfo(userId: User.Id): F[String]
 }

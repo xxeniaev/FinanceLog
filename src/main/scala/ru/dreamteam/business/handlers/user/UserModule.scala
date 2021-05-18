@@ -10,7 +10,7 @@ import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
 import zio._
 import cats.syntax.all._
 import ru.dreamteam.application.DatabaseComponent
-import ru.dreamteam.business.handlers.user.handlers.UserHandler
+import ru.dreamteam.business.handlers.user.handlers.{LoginHandler, PersonalInfoHandler, RegistrationHandler}
 import ru.dreamteam.business.services.users.UserService
 import sttp.tapir.server.ServerEndpoint
 import zio.interop.catz._
@@ -27,7 +27,7 @@ class UserModule(userService: UserService[MainTask])(
     .in(query[String]("userId").mapTo(PersonalInfoRequest.apply _))
     .out(jsonBody[Response[PersonalInfoResponse]])
     .summary("Информация по пользователю")
-    .handle(UserHandler(userService))
+    .handle(PersonalInfoHandler(userService))
 
   val registrationEndpoint = endpoint
     .post
@@ -36,7 +36,7 @@ class UserModule(userService: UserService[MainTask])(
     .out(jsonBody[Response[RegistrationResponse]])
     .summary("Регистрация пользователя")
     .description("Пользователь регистрируется, создавая логин и пароль")
-    .handle(UserHandler(userService))
+    .handle(RegistrationHandler(userService))
 
   val loginEndpoint = endpoint
     .post
@@ -45,13 +45,16 @@ class UserModule(userService: UserService[MainTask])(
     .out(jsonBody[Response[LoginResponse]])
     .summary("Вход пользователя")
     .description("Пользователь логинится, указывая свои логин и пароль")
-    .handle(UserHandler(userService))
+    .handle(LoginHandler(userService))
 
-  // аналогично список ендпоинтов
   override def httpRoutes(
     implicit
     serverOptions: Http4sServerOptions[Task]
-  ): HttpRoutes[Task] = Http4sServerInterpreter.toRoutes(personalInfoEndpoint)
+  ): HttpRoutes[Task] = Http4sServerInterpreter.toRoutes(List(
+    personalInfoEndpoint,
+    registrationEndpoint,
+    loginEndpoint
+  ))
 
   override def endPoints: List[Endpoint[_, Unit, _, _]] =
     List(personalInfoEndpoint.endpoint, registrationEndpoint.endpoint, loginEndpoint.endpoint)

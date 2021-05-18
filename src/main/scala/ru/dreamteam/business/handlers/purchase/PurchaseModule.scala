@@ -10,7 +10,7 @@ import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
 import zio._
 import cats.syntax.all._
 import ru.dreamteam.business.Purchase
-import ru.dreamteam.business.handlers.purchase.handlers.PurchaseHandler
+import ru.dreamteam.business.handlers.purchase.handlers.{AddPurchaseHandler, GetPurchaseByTypeHandler, GetPurchasesHandler, PurchaseInfoHandler}
 import ru.dreamteam.business.services.purchases.PurchasesService
 import sttp.tapir.server.ServerEndpoint
 import zio.interop.catz._
@@ -23,46 +23,48 @@ class PurchaseModule(purchaseService: PurchasesService[MainTask])(
   runtime: zio.Runtime[Unit]
 ) extends HttpModule[Task] {
 
-  // Handlerы делать для каждого эндпоинта свои!
-  // мульти параметры через and
   val purchaseInfoEndpoint = endpoint // взять одну покупку
     .get
     .in("purchase_info")
     .in(query[Int]("userId").and(query[Int]("purchaseId")).mapTo(PurchaseInfoRequest.apply _))
     .out(jsonBody[Response[PurchaseInfoResponse]])
     .summary("Информация по пользователю")
-    .handle(PurchaseHandler(purchaseService))
+    .handle(PurchaseInfoHandler(purchaseService))
 
-  val getUserPurchasesEndpiont = endpoint // взять все покупки пользоавателя
+//    .handleWithAuthorization(PurchaseInfoHandler(purchaseService))
+
+  val getUserPurchasesEndpiont = endpoint // взять все покупки пользователя
     .get
     .in("get_purchases")
-//    .in(query[Int]("userId").mapTo(GetPurchasesRequest.apply _))
+    .in(query[Int]("userId").mapTo(GetPurchasesRequest.apply _))
     .out(jsonBody[Response[GetPurchasesResponse]])
     .summary("Получение покупок пользователя")
-    .handleWithAuthorization(PurchaseHandler(purchaseService))
+    .handle(GetPurchasesHandler(purchaseService))
+
+//    .handleWithAuthorization(GetPurchasesHandler(purchaseService))
 
   val getPurchasesByTypeEndpiont = endpoint // взять покупки по типу
     .get
-//    .in("get_purchases_by_type")
-    // на уверена, что так надо, но похоже на правду
-    .in(
-      ("get_purchases_by_type" / path[Int]("userId") / path[String]("purchaseType")).mapTo(
-        GetPurchaseByTypeRequest
-      )
-    )
+    .in("get_purchases_by_type")
+    .in(query[Int]("userId").and(query[String]("purchaseType")).mapTo(
+      GetPurchaseByTypeRequest.apply _
+    ))
     .out(jsonBody[Response[GetPurchaseByTypeResponse]])
     .summary("Получение покупок по типу")
-    .handle(PurchaseHandler(purchaseService))
+    .handle(GetPurchaseByTypeHandler(purchaseService))
+
+//    .handleWithAuthorization(GetPurchaseByTypeHandler(purchaseService))
 
   val addPurchaseEndpiont = endpoint // добавить покупку
     .post
     .in("add_purchase")
     .in(jsonBody[Purchase])
-    .out(jsonBody[Response[PurchaseInfoResponse]])
+    .out(jsonBody[Response[AddPurchaseResponse]])
     .summary("Добавление покупки")
-    .handle(PurchaseHandler(purchaseService))
+    .handle(AddPurchaseHandler(purchaseService))
 
-// вот так должно быть
+//    .handleWithAuthorization(AddPurchaseHandler(purchaseService))
+
   override def httpRoutes(
     implicit
     serverOptions: Http4sServerOptions[Task]

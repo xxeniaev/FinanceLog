@@ -3,16 +3,13 @@ package ru.dreamteam.business.handlers.purchase
 import derevo.derive
 import derevo.tethys._
 import ru.dreamteam.business.Purchase
-import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepositoryInterpreter.PurchaseRaw
 import sttp.tapir.description
 
 case class PurchaseInfoRequest(userId: Int, purchaseId: Int)
 
 @derive(tethysReader, tethysWriter)
 @description("Информация о покупке")
-case class PurchaseInfoResponse(
-  @description("Комментарий к покупке") comment: String
-)
+case class PurchaseInfoResponse(info: String)
 
 case class GetPurchasesRequest(userId: Int)
 

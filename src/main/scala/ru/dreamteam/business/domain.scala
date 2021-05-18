@@ -4,6 +4,7 @@ import derevo.derive
 import derevo.tethys.{tethysReader, tethysWriter}
 import enumeratum.{Enum, EnumEntry}
 import io.estatico.newtype.macros.newtype
+import ru.dreamteam.business.Currency.XXX
 import ru.dreamteam.business.Purchase.PurchaseCategory
 
 case class App()
@@ -12,6 +13,7 @@ case class Token(token: String)
 
 @derive(tethysReader, tethysWriter)
 case class User(userId: User.Id, login: User.Login, password: User.Password)
+
 case class Money(amount: BigDecimal, currency: Currency)
 
 // new type usage
@@ -45,6 +47,10 @@ object Purchase {
     case object SPORT     extends PurchaseCategory
     case object NECESSARY extends PurchaseCategory
     case object OTHER     extends PurchaseCategory
+
+    def parse(str: String): PurchaseCategory =
+      PurchaseCategory.withNameInsensitiveOption(str).getOrElse(OTHER)
+
   }
 
 }

@@ -26,10 +26,8 @@ case class LoginRequest(login: String, password: String)
 @derive(tethysReader, tethysWriter)
 @description("Вход пользователя")
 case class LoginResponse(
-  @description("Token") token: Token
+  @description("Токен") token: Token
 )
-
-
 
 @derive(tethysReader, tethysWriter)
 case class Credentials(login: String, password: String)
