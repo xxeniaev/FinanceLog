@@ -20,7 +20,8 @@ case class ServicesComponent[F[_]](userService: UserService[F], sessionService: 
 object ServicesComponent {
 
   def build[F[_] : Sync](repoComp: RepositoriesComponent[F]): Resource[F, ServicesComponent[F]] = {
-    val sessionService = new SessionServiceInterpreter[F]
+    // проинизиализировать Ref использовать for-comp, вероятно надо будет Resource.lift(...)
+    val sessionService = new SessionServiceInterpreter[F](???)
     val purchasesService = new PurchasesServiceInterpreter[F](repoComp.purchaseRepo)
     val userService = new UserServiceInterpreter[F](repoComp.userRepo, sessionService)
     Resource.pure(ServicesComponent(userService, sessionService, purchasesService))
