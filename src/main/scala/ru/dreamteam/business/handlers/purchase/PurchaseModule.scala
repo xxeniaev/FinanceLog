@@ -22,25 +22,26 @@ class PurchaseModule(purchaseService: PurchasesService[MainTask])(
   implicit
   runtime: zio.Runtime[Unit]
 ) extends HttpModule[Task] {
-  // это все эндпоинты, которые пришли в голову, еще какие-то надо мб?
 
-  val purchaseInfoEndpoint = endpoint
+  // Handlerы делать для каждого эндпоинта свои!
+  // мульти параметры через and
+  val purchaseInfoEndpoint = endpoint // взять одну покупку
     .get
     .in("purchase_info")
-    .in(query[String]("userId").mapTo(PurchaseInfoRequest.apply _))
+    .in(query[Int]("userId").and(query[Int]("purchaseId")).mapTo(PurchaseInfoRequest.apply _))
     .out(jsonBody[Response[PurchaseInfoResponse]])
     .summary("Информация по пользователю")
     .handle(PurchaseHandler(purchaseService))
 
-  val getUserPurchasesEndpiont = endpoint
+  val getUserPurchasesEndpiont = endpoint // взять все покупки пользоавателя
     .get
     .in("get_purchases")
-    .in(query[String]("userId").mapTo(GetPurchasesRequest.apply _))
+//    .in(query[Int]("userId").mapTo(GetPurchasesRequest.apply _))
     .out(jsonBody[Response[GetPurchasesResponse]])
     .summary("Получение покупок пользователя")
-    .handle(PurchaseHandler(purchaseService))
+    .handleWithAuthorization(PurchaseHandler(purchaseService))
 
-  val getPurchasesByTypeEndpiont = endpoint
+  val getPurchasesByTypeEndpiont = endpoint // взять покупки по типу
     .get
 //    .in("get_purchases_by_type")
     // на уверена, что так надо, но похоже на правду
@@ -53,7 +54,7 @@ class PurchaseModule(purchaseService: PurchasesService[MainTask])(
     .summary("Получение покупок по типу")
     .handle(PurchaseHandler(purchaseService))
 
-  val addPurchaseEndpiont = endpoint
+  val addPurchaseEndpiont = endpoint // добавить покупку
     .post
     .in("add_purchase")
     .in(jsonBody[Purchase])
@@ -61,12 +62,18 @@ class PurchaseModule(purchaseService: PurchasesService[MainTask])(
     .summary("Добавление покупки")
     .handle(PurchaseHandler(purchaseService))
 
-  // тут чет не особо поняла про роуты, почитаю ещё, поразбираюсь
-  // нужно их несколько создать?
+// вот так должно быть
   override def httpRoutes(
     implicit
     serverOptions: Http4sServerOptions[Task]
-  ): HttpRoutes[Task] = Http4sServerInterpreter.toRoutes(purchaseInfoEndpoint)
+  ): HttpRoutes[Task] = Http4sServerInterpreter.toRoutes(
+    List(
+      purchaseInfoEndpoint,
+      getUserPurchasesEndpiont,
+      getPurchasesByTypeEndpiont,
+      addPurchaseEndpiont
+    )
+  )
 
   override def endPoints: List[Endpoint[_, Unit, _, _]] = List(
     purchaseInfoEndpoint.endpoint,

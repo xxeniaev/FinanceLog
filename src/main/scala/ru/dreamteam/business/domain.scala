@@ -1,5 +1,7 @@
 package ru.dreamteam.business
 
+import derevo.derive
+import derevo.tethys.{tethysReader, tethysWriter}
 import enumeratum.{Enum, EnumEntry}
 import io.estatico.newtype.macros.newtype
 import ru.dreamteam.business.Purchase.PurchaseCategory
@@ -7,9 +9,11 @@ import ru.dreamteam.business.Purchase.PurchaseCategory
 case class App()
 
 case class Token(token: String)
+
+@derive(tethysReader, tethysWriter)
 case class User(userId: User.Id, login: User.Login, password: User.Password)
 case class Money(amount: BigDecimal, currency: Currency)
-case class Credentials(login: String, password: String)
+
 // new type usage
 
 object User {
@@ -18,6 +22,7 @@ object User {
   @newtype case class Password(password: String)
 }
 
+@derive(tethysReader, tethysWriter)
 case class Purchase(
   purchaseId: Purchase.Id,
   money: Money,

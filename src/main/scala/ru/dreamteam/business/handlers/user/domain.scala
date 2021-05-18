@@ -2,7 +2,7 @@ package ru.dreamteam.business.handlers.user
 
 import derevo.derive
 import derevo.tethys._
-import ru.dreamteam.business.User
+import ru.dreamteam.business.{Token, User}
 import sttp.tapir.description
 
 case class PersonalInfoRequest(userId: Int)
@@ -26,5 +26,10 @@ case class LoginRequest(login: String, password: String)
 @derive(tethysReader, tethysWriter)
 @description("Вход пользователя")
 case class LoginResponse(
-  @description("Пользователь") user: User
+  @description("Token") token: Token
 )
+
+
+
+@derive(tethysReader, tethysWriter)
+case class Credentials(login: String, password: String)

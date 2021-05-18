@@ -10,7 +10,6 @@ import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
 import zio._
 import cats.syntax.all._
 import ru.dreamteam.application.DatabaseComponent
-import ru.dreamteam.business.Credentials
 import ru.dreamteam.business.handlers.user.handlers.UserHandler
 import ru.dreamteam.business.services.users.UserService
 import sttp.tapir.server.ServerEndpoint
@@ -48,7 +47,7 @@ class UserModule(userService: UserService[MainTask])(
     .description("Пользователь логинится, указывая свои логин и пароль")
     .handle(UserHandler(userService))
 
-  // что это не понятно
+  // аналогично список ендпоинтов
   override def httpRoutes(
     implicit
     serverOptions: Http4sServerOptions[Task]
