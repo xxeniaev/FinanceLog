@@ -4,19 +4,20 @@ import derevo.derive
 import derevo.tethys.{tethysReader, tethysWriter}
 import enumeratum.{Enum, EnumEntry}
 import io.estatico.newtype.macros.newtype
-import ru.dreamteam.business.Currency.XXX
 import ru.dreamteam.business.Purchase.PurchaseCategory
+import sttp.tapir.codec.newtype._
+import ru.dreamteam.infrastructure.newtype._
+import tethys.enumeratum.TethysEnum
 
-case class App()
 
+@derive(tethysReader, tethysWriter)
 case class Token(token: String)
 
 @derive(tethysReader, tethysWriter)
 case class User(userId: User.Id, login: User.Login, password: User.Password)
 
+@derive(tethysReader, tethysWriter)
 case class Money(amount: BigDecimal, currency: Currency)
-
-// new type usage
 
 object User {
   @newtype case class Id(id: Int)
@@ -38,7 +39,7 @@ object Purchase {
 
   sealed trait PurchaseCategory extends EnumEntry
 
-  object PurchaseCategory extends Enum[PurchaseCategory] {
+  object PurchaseCategory extends Enum[PurchaseCategory] with TethysEnum[PurchaseCategory] {
     val values = findValues
 
     case object MARKET    extends PurchaseCategory
@@ -57,7 +58,7 @@ object Purchase {
 
 sealed trait Currency extends EnumEntry
 
-object Currency extends Enum[Currency] {
+object Currency extends Enum[Currency] with TethysEnum[Currency] {
   val values = findValues
 
   case object RUB extends Currency

@@ -15,8 +15,8 @@ package object http {
   implicit class EndpointReacher2[I, O](endpoint: Endpoint[I, Unit, Response[O], Any]) {
 
     def handleWithAuthorization(
-                logic: I => ZIO[MainEnv, Throwable, O]
-              )(implicit sessionService: SessionService[ZIO[MainEnv, Throwable, O]]): ServerEndpoint[I, Unit, Response[O], Any, Task] =
+      logic: I => ZIO[MainEnv, Throwable, O]
+    )(implicit sessionService: SessionService[MainTask]): ServerEndpoint[I, Unit, Response[O], Any, Task] =
       ServerEndpoint[I, Unit, Response[O], Any, Task](
         endpoint, // (Request, I)
         _ =>

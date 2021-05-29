@@ -17,6 +17,7 @@ import zio.interop.catz._
 import zio.interop.catz.implicits._
 import sttp.tapir._
 import sttp.tapir.generic.auto._
+import sttp.tapir.codec.newtype._
 
 class PurchaseModule(purchaseService: PurchasesService[MainTask])(
   implicit
@@ -39,7 +40,7 @@ class PurchaseModule(purchaseService: PurchasesService[MainTask])(
     .in(query[Int]("userId").mapTo(GetPurchasesRequest.apply _))
     .out(jsonBody[Response[GetPurchasesResponse]])
     .summary("Получение покупок пользователя")
-    .handle(GetPurchasesHandler(purchaseService))
+    .handle(GetPurchasesHandler(purchaseService)(_))
 
 //    .handleWithAuthorization(GetPurchasesHandler(purchaseService))
 
@@ -51,17 +52,17 @@ class PurchaseModule(purchaseService: PurchasesService[MainTask])(
     ))
     .out(jsonBody[Response[GetPurchaseByTypeResponse]])
     .summary("Получение покупок по типу")
-    .handle(GetPurchaseByTypeHandler(purchaseService))
+    .handle(GetPurchaseByTypeHandler(purchaseService)(_))
 
 //    .handleWithAuthorization(GetPurchaseByTypeHandler(purchaseService))
 
   val addPurchaseEndpiont = endpoint // добавить покупку
     .post
     .in("add_purchase")
-    .in(jsonBody[Purchase])
+    .in(jsonBody[AddPurchaseRequest])
     .out(jsonBody[Response[AddPurchaseResponse]])
     .summary("Добавление покупки")
-    .handle(AddPurchaseHandler(purchaseService))
+    .handle(AddPurchaseHandler(purchaseService)(_))
 
 //    .handleWithAuthorization(AddPurchaseHandler(purchaseService))
 

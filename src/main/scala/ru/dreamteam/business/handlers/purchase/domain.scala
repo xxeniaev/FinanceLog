@@ -4,6 +4,8 @@ import derevo.derive
 import derevo.tethys._
 import ru.dreamteam.business.Purchase
 import sttp.tapir.description
+import sttp.tapir.generic.auto._
+import ru.dreamteam.infrastructure.newtype._
 
 case class PurchaseInfoRequest(userId: Int, purchaseId: Int)
 
@@ -26,7 +28,7 @@ case class GetPurchaseByTypeRequest(userId: Int, purchaseCategory: String)
 case class GetPurchaseByTypeResponse(
   @description("Покупки пользователя") purchases: List[Purchase]
 )
-
+@derive(tethysReader, tethysWriter)
 case class AddPurchaseRequest(
   userId: Int,
   amount: BigDecimal,

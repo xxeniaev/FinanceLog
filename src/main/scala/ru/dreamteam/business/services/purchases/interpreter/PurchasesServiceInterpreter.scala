@@ -18,7 +18,7 @@ class PurchasesServiceInterpreter[F[_]](repo: PurchasesRepository[F]) extends Pu
     money: Money,
     comment: String,
     purchaseCategory: PurchaseCategory
-  ): F[Purchase.Id] = ???
+  ): F[Purchase] = ???
 
   override def purchaseInfo(userId: User.Id, purchaseId: Purchase.Id): F[String] = ???
 }

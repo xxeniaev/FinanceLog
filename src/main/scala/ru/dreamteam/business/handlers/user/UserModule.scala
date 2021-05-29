@@ -15,6 +15,7 @@ import ru.dreamteam.business.services.users.UserService
 import sttp.tapir.server.ServerEndpoint
 import zio.interop.catz._
 import zio.interop.catz.implicits._
+import sttp.tapir.codec.newtype._
 
 class UserModule(userService: UserService[MainTask])(
   implicit
@@ -24,7 +25,7 @@ class UserModule(userService: UserService[MainTask])(
   val personalInfoEndpoint = endpoint
     .get
     .in("personal_info")
-    .in(query[String]("userId").mapTo(PersonalInfoRequest.apply _))
+    .in(query[Int]("userId").mapTo(PersonalInfoRequest.apply _))
     .out(jsonBody[Response[PersonalInfoResponse]])
     .summary("Информация по пользователю")
     .handle(PersonalInfoHandler(userService))
@@ -32,16 +33,16 @@ class UserModule(userService: UserService[MainTask])(
   val registrationEndpoint = endpoint
     .post
     .in("register")
-    .in(jsonBody[Credentials])
+    .in(jsonBody[RegistrationRequest])
     .out(jsonBody[Response[RegistrationResponse]])
     .summary("Регистрация пользователя")
     .description("Пользователь регистрируется, создавая логин и пароль")
-    .handle(RegistrationHandler(userService))
+    .handle(RegistrationHandler(userService)(_))
 
   val loginEndpoint = endpoint
     .post
     .in("login")
-    .in(jsonBody[Credentials])
+    .in(jsonBody[LoginRequest])
     .out(jsonBody[Response[LoginResponse]])
     .summary("Вход пользователя")
     .description("Пользователь логинится, указывая свои логин и пароль")

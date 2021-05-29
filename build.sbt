@@ -23,6 +23,7 @@ libraryDependencies ++= Seq(
   //  for http server
   "com.softwaremill.sttp.tapir" %% "tapir-http4s-server" % "0.17.19",
   "com.softwaremill.sttp.tapir" %% "tapir-json-tethys" % "0.17.19",
+  "com.softwaremill.sttp.tapir" %% "tapir-newtype" % "0.17.19",
 
   "com.softwaremill.sttp.tapir" %% "tapir-swagger-ui-http4s" % "0.17.19",
   "com.softwaremill.sttp.tapir" %% "tapir-openapi-docs"        % "0.17.19",

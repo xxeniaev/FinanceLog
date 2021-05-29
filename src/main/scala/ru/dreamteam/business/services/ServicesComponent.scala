@@ -11,7 +11,7 @@ object ServicesComponent {
 
   def build[F[_]: Sync](): Resource[F, ServicesComponent[F]] = {
 
-    val userService = new UserServiceInterpreter[F]()
+    val userService = new UserServiceInterpreter[F](???, ???)
 
     Resource.pure(ServicesComponent(userService))
   }
