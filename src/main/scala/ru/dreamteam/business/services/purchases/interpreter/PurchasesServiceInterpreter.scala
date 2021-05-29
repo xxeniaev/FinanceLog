@@ -6,7 +6,7 @@ import ru.dreamteam.business.repository.purchases.PurchasesRepository
 import ru.dreamteam.business.services.purchases.PurchasesService
 
 class PurchasesServiceInterpreter[F[_]](repo: PurchasesRepository[F]) extends PurchasesService[F] {
-  override def getPurchase(userId: User.Id): F[List[Purchase]] = ???
+  override def getPurchases(userId: User.Id): F[List[Purchase]] = ???
 
   override def getPurchaseByType(
     userId: User.Id,
@@ -18,6 +18,7 @@ class PurchasesServiceInterpreter[F[_]](repo: PurchasesRepository[F]) extends Pu
     money: Money,
     comment: String,
     purchaseCategory: PurchaseCategory
-  ): Unit = ???
+  ): F[Purchase.Id] = ???
 
+  override def purchaseInfo(userId: User.Id, purchaseId: Purchase.Id): F[String] = ???
 }

@@ -8,16 +8,11 @@ import ru.dreamteam.business.User
 import doobie.implicits._
 import ru.dreamteam.business.repository.users.UsersRepository
 import ru.dreamteam.business.repository.users.UsersRepository.UserReq
-import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.{insertUser, selectAll, selectUser, transform}
+import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.{insertUser, selectUser, transform}
 import doobie.implicits.toSqlInterpolator
 
 class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F])
   extends UsersRepository[F] {
-
-  override def findAll(): F[List[User]] = for {
-    raw   <- selectAll().transact(transactor) // nea
-    result = raw.flatMap(transform)
-  } yield result
 
   override def findUser(userId: User.Id): F[Option[User]] = for {
     raw   <- selectUser(userId.id).transact(transactor)
@@ -35,23 +30,18 @@ object UsersRepositoryInterpreter {
   def transform(raw: UserRaw): Option[User] =
     Option(User(User.Id(raw.userId), User.Login(raw.login), User.Password(raw.password)))
 
-  def selectAll(): doobie.ConnectionIO[List[UserRaw]] =
-    sql"SELECT userId, login, password FROM users"
-      .query[UserRaw]
-      .to[List]
-
-  def selectUser(userId: String): doobie.ConnectionIO[Option[UserRaw]] =
+  def selectUser(userId: Int): doobie.ConnectionIO[Option[UserRaw]] =
     sql"SELECT login, password FROM users WHERE userId = $userId"
       .query[UserRaw]
       .option
 
-  def insertUser(login: String, password: String): doobie.ConnectionIO[String] =
+  def insertUser(login: String, password: String): doobie.ConnectionIO[Int] =
     sql"INSERT INTO users (login, password) VALUES ($login, $password)"
       .update
-      .withUniqueGeneratedKeys[String]("userId")
+      .withUniqueGeneratedKeys[Int]("userId")
 
   case class UserRaw(
-    userId: String,
+    userId: Int,
     login: String,
     password: String
   )

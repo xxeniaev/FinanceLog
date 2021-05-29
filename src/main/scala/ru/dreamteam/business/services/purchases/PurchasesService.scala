@@ -5,8 +5,7 @@ import ru.dreamteam.business.{Money, Purchase, User}
 
 trait PurchasesService[F[_]] {
 
-  // дописать создать, все на ваше усмотрение
-  def getPurchase(userId: User.Id): F[List[Purchase]]
+  def getPurchases(userId: User.Id): F[List[Purchase]]
 
   def getPurchaseByType(userId: User.Id, purchaseCategory: PurchaseCategory): F[List[Purchase]]
 
@@ -15,6 +14,10 @@ trait PurchasesService[F[_]] {
     money: Money,
     comment: String,
     purchaseCategory: PurchaseCategory
-  )
+  ): F[Purchase]
+
+  // нормально ли, что функция выдает строку? где эта строка формируется?
+  // подумала, что она должна выдавать userId, pId, amount и тд
+  def purchaseInfo(userId: User.Id, purchaseId: Purchase.Id): F[String]
 
 }

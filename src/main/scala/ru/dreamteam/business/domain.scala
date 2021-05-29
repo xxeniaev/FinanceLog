@@ -1,22 +1,30 @@
 package ru.dreamteam.business
 
+import derevo.derive
+import derevo.tethys.{tethysReader, tethysWriter}
 import enumeratum.{Enum, EnumEntry}
 import io.estatico.newtype.macros.newtype
-import ru.dreamteam.business.Purchase.{PurchaseCategory}
+import ru.dreamteam.business.Currency.XXX
+import ru.dreamteam.business.Purchase.PurchaseCategory
 
 case class App()
 
 case class Token(token: String)
+
+@derive(tethysReader, tethysWriter)
 case class User(userId: User.Id, login: User.Login, password: User.Password)
+
 case class Money(amount: BigDecimal, currency: Currency)
+
 // new type usage
 
 object User {
-  @newtype case class Id(id: String)
+  @newtype case class Id(id: Int)
   @newtype case class Login(login: String)
   @newtype case class Password(password: String)
 }
 
+@derive(tethysReader, tethysWriter)
 case class Purchase(
   purchaseId: Purchase.Id,
   money: Money,
@@ -25,7 +33,7 @@ case class Purchase(
 )
 
 object Purchase {
-  @newtype case class Id(id: String)
+  @newtype case class Id(id: Int)
   @newtype case class Comment(comment: String)
 
   sealed trait PurchaseCategory extends EnumEntry
@@ -39,6 +47,10 @@ object Purchase {
     case object SPORT     extends PurchaseCategory
     case object NECESSARY extends PurchaseCategory
     case object OTHER     extends PurchaseCategory
+
+    def parse(str: String): PurchaseCategory =
+      PurchaseCategory.withNameInsensitiveOption(str).getOrElse(OTHER)
+
   }
 
 }
