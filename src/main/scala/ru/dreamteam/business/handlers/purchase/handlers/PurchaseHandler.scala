@@ -11,8 +11,8 @@ object PurchaseInfoHandler {
 
   def apply[R](
     purchasesService: PurchasesService[MainTask]
-  )(req: PurchaseInfoRequest): ZIO[MainEnv, Throwable, PurchaseInfoResponse] =
-    purchasesService.purchaseInfo(User.Id(req.userId), Purchase.Id(req.purchaseId))
+  )(userId: User.Id, req: PurchaseInfoRequest): ZIO[MainEnv, Throwable, PurchaseInfoResponse] =
+    purchasesService.purchaseInfo(userId, Purchase.Id(req.purchaseId))
       .map(info => PurchaseInfoResponse(info))
 
 }

@@ -2,8 +2,8 @@ package ru.dreamteam.business.handlers.purchase
 
 import org.http4s.HttpRoutes
 import ru.dreamteam.infrastructure.http.{HttpModule, Response}
-import ru.dreamteam.infrastructure.{http, MainTask}
-import sttp.tapir.{endpoint, query, Endpoint}
+import ru.dreamteam.infrastructure.{MainTask, http}
+import sttp.tapir.{Endpoint, endpoint, query}
 import sttp.tapir.generic.auto._
 import sttp.tapir.json.tethysjson.jsonBody
 import sttp.tapir.server.http4s.{Http4sServerInterpreter, Http4sServerOptions}
@@ -12,6 +12,7 @@ import cats.syntax.all._
 import ru.dreamteam.business.Purchase
 import ru.dreamteam.business.handlers.purchase.handlers.{AddPurchaseHandler, GetPurchaseByTypeHandler, GetPurchasesHandler, PurchaseInfoHandler}
 import ru.dreamteam.business.services.purchases.PurchasesService
+import ru.dreamteam.business.services.session.SessionService
 import sttp.tapir.server.ServerEndpoint
 import zio.interop.catz._
 import zio.interop.catz.implicits._
@@ -21,18 +22,19 @@ import sttp.tapir.codec.newtype._
 
 class PurchaseModule(purchaseService: PurchasesService[MainTask])(
   implicit
-  runtime: zio.Runtime[Unit]
+  runtime: zio.Runtime[Unit],
+  sessionService: SessionService[MainTask]
 ) extends HttpModule[Task] {
 
   val purchaseInfoEndpoint = endpoint // взять одну покупку
     .get
     .in("purchase_info")
-    .in(query[Int]("userId").and(query[Int]("purchaseId")).mapTo(PurchaseInfoRequest.apply _))
+    .in(query[Int]("purchaseId").mapTo(PurchaseInfoRequest.apply _))
     .out(jsonBody[Response[PurchaseInfoResponse]])
     .summary("Информация по пользователю")
-    .handle(PurchaseInfoHandler(purchaseService))
+//    .handle(PurchaseInfoHandler(purchaseService))
 
-//    .handleWithAuthorization(PurchaseInfoHandler(purchaseService))
+    .handleWithAuthorization(PurchaseInfoHandler(purchaseService))
 
   val getUserPurchasesEndpiont = endpoint // взять все покупки пользователя
     .get

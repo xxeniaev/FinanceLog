@@ -7,7 +7,7 @@ import sttp.tapir.description
 import sttp.tapir.generic.auto._
 import ru.dreamteam.infrastructure.newtype._
 
-case class PurchaseInfoRequest(userId: Int, purchaseId: Int)
+case class PurchaseInfoRequest(purchaseId: Int)
 
 @derive(tethysReader, tethysWriter)
 @description("Информация о покупке")

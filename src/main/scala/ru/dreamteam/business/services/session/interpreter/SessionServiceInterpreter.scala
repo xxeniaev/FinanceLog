@@ -9,6 +9,6 @@ import ru.dreamteam.business.services.session.SessionService
 class SessionServiceInterpreter[F[_]]() extends SessionService[F] {
 
   override def generate(login: User.Login): F[Token] = ???
-  override def getUser(token: Token): F[User.Id] = ???
+  override def getUser(token: Token): F[Option[User.Id]] = ???
 
 }
