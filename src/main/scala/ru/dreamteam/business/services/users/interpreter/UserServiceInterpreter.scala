@@ -1,28 +1,35 @@
 package ru.dreamteam.business.services.users.interpreter
 
 import cats.Monad
-import cats.effect.{BracketThrow, Sync}
 import cats.syntax.all._
-import doobie.implicits.toSqlInterpolator
-import ru.dreamteam.business.User.Password
-import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepositoryInterpreter.PurchaseRaw
-import ru.dreamteam.business.services.session.SessionService
-import ru.dreamteam.business.{Token, User}
-import ru.dreamteam.business.services.users.UserService
+import cats.effect.concurrent.Ref
+import cats.effect.{BracketThrow, Sync}
 import ru.dreamteam.business.repository.users.UsersRepository
-import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.UserRaw
+import ru.dreamteam.business.repository.users.UsersRepository.UserReq
+import ru.dreamteam.business.services.session.SessionService
+import ru.dreamteam.business.services.users.UserService
+import ru.dreamteam.business.{Token, User}
 
-class UserServiceInterpreter[F[_]: Sync: BracketThrow](
-  sessionService: SessionService[F],
-  repo: UsersRepository[F]
-) extends UserService[F] {
 
-  override def login(login: User.Login, password: User.Password): F[Token] = ???
+class UserServiceInterpreter[F[_] : Sync : BracketThrow : Monad](sessionService: SessionService[F],
+                                                                 repo: UsersRepository[F]
+                                                                ) extends UserService[F] {
 
-  override def registration(login: User.Login, password: User.Password): F[User] = ???
+  override def login(login: User.Login, password: User.Password): F[Token] = for {
+    userOption <- repo.findUserByLogin(login)
+    user <- Sync[F].fromOption(userOption, LoginNotExist(""))
+    _ <- Sync[F].raiseError(IncorrectPassword("incorrect password")).whenA(user.password != password)
+    token <- sessionService.generate(user)
+  } yield token
 
-  override def userInfo(userId: User.Id): F[String] = Sync[F].raiseError(LoginExist("not bad"))
+  override def registration(login: User.Login, password: User.Password): F[User] = for {
+    userId <- repo.addUser(UserReq(login, password))
+  } yield User(userId, login, password)
+
+  override def userInfo(userId: User.Id): F[String] = ???
 }
 
 abstract class BusinessError(msg: String, th: Throwable = null) extends Exception(msg, th)
-case class LoginExist(msg: String) extends BusinessError(msg)
+
+case class LoginNotExist(msg: String) extends BusinessError(msg)
+case class IncorrectPassword(msg: String) extends BusinessError(msg)
