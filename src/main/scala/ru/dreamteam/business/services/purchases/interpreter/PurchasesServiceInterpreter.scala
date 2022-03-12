@@ -10,20 +10,20 @@ import ru.dreamteam.business.services.purchases.PurchasesService
 import ru.dreamteam.business.services.users.interpreter.BusinessError
 import ru.dreamteam.business.{Money, Purchase, User}
 
-class PurchasesServiceInterpreter[F[_]: Sync: Monad](repo: PurchasesRepository[F]) extends PurchasesService[F] {
+class PurchasesServiceInterpreter[F[_] : Sync : Monad](repo: PurchasesRepository[F]) extends PurchasesService[F] {
   override def getPurchases(userId: User.Id): F[List[Purchase]] = repo.findByUserId(userId)
 
   override def getPurchaseByType(
-    userId: User.Id,
-    purchaseCategory: PurchaseCategory
-  ): F[List[Purchase]] = repo.findByCategory(userId, purchaseCategory)
+                                  userId: User.Id,
+                                  purchaseCategory: PurchaseCategory
+                                ): F[List[Purchase]] = repo.findByCategory(userId, purchaseCategory)
 
   override def addPurchase(
-    userId: User.Id,
-    money: Money,
-    comment: String,
-    purchaseCategory: PurchaseCategory
-  ): F[Purchase] = for {
+                            userId: User.Id,
+                            money: Money,
+                            comment: String,
+                            purchaseCategory: PurchaseCategory
+                          ): F[Purchase] = for {
     purchaseId <- repo.addPurchase(userId, PurchaseRequest(money, Comment(comment), purchaseCategory))
     purchaseOption <- repo.findByPurchaseId(userId, purchaseId)
     purchase <- Sync[F].fromOption(purchaseOption, PurchaseNotExists("purchase not found"))

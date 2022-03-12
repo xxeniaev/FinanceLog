@@ -10,8 +10,7 @@ import ru.dreamteam.business.{Token, User}
 import scala.collection.concurrent.Map
 
 
-
-class SessionServiceInterpreter[F[_]: Sync: Monad](tableToken: Ref[F, Map[Token, User.Id]]) extends SessionService[F] {
+class SessionServiceInterpreter[F[_] : Sync : Monad](tableToken: Ref[F, Map[Token, User.Id]]) extends SessionService[F] {
 
   override def generate(user: User): F[Token] = for {
     token <- Sync[F].delay(Token(s"userId: ${user.userId}, userLogin: ${user.login}"))

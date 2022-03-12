@@ -32,4 +32,5 @@ class UserServiceInterpreter[F[_] : Sync : BracketThrow : Monad](sessionService:
 abstract class BusinessError(msg: String, th: Throwable = null) extends Exception(msg, th)
 
 case class LoginNotExist(msg: String) extends BusinessError(msg)
+
 case class IncorrectPassword(msg: String) extends BusinessError(msg)
