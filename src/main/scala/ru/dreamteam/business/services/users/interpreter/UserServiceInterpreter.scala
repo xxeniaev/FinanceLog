@@ -23,14 +23,18 @@ class UserServiceInterpreter[F[_] : Sync : BracketThrow : Monad](sessionService:
   } yield token
 
   override def registration(login: User.Login, password: User.Password): F[User] = for {
+    userOption <- repo.findUserByLogin(login)
+    _ <- Sync[F].raiseError(LoginExist("login already exists")).whenA(userOption.isDefined)
     userId <- repo.addUser(UserReq(login, password))
   } yield User(userId, login, password)
 
-  override def userInfo(userId: User.Id): F[String] = ???
+  override def userInfo(userId: User.Id): F[String] = Sync[F].delay(s"userId: $userId")
 }
 
 abstract class BusinessError(msg: String, th: Throwable = null) extends Exception(msg, th)
 
 case class LoginNotExist(msg: String) extends BusinessError(msg)
+
+case class LoginExist(msg: String) extends BusinessError(msg)
 
 case class IncorrectPassword(msg: String) extends BusinessError(msg)
