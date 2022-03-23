@@ -3,6 +3,7 @@ package ru.dreamteam.business.handlers.purchase
 import derevo.derive
 import derevo.tethys._
 import ru.dreamteam.business.Purchase
+import ru.dreamteam.business.services.purchases.interpreter.PurchaseInfo
 import sttp.tapir.description
 import sttp.tapir.generic.auto._
 import ru.dreamteam.infrastructure.newtype._
@@ -11,7 +12,7 @@ case class PurchaseInfoRequest(purchaseId: Int)
 
 @derive(tethysReader, tethysWriter)
 @description("Информация о покупке")
-case class PurchaseInfoResponse(info: String)
+case class PurchaseInfoResponse(info: PurchaseInfo)
 
 case class GetPurchasesRequest(userId: Int)
 

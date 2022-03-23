@@ -14,42 +14,39 @@ import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepository
 import ru.dreamteam.business.services.purchases.interpreter.PurchaseNotExists
 import ru.dreamteam.business.services.users.interpreter.BusinessError
 
-class PurchaseRepositoryInterpreter[F[_] : BracketThrow : Monad](transactor: H2Transactor[F])
+class PurchaseRepositoryInterpreter[F[_]: BracketThrow](transactor: H2Transactor[F])
   extends PurchasesRepository[F] {
-
 
   //записать ошибку в log, когда из сделаем
   override def findByUserId(userId: User.Id): F[List[Purchase]] = for {
-    raw <- selectByUserId(userId.id).transact(transactor)
-    result = raw.map(transform).separate match {
-      case (_, right) => right
-    }
+    raw   <- selectByUserId(userId.id).transact(transactor)
+    (_, result) = raw.map(transform).separate
   } yield result
 
   override def findByCategory(userId: User.Id, category: PurchaseCategory): F[List[Purchase]] =
     for {
-      raw <- selectByCategory(userId.id, category).transact(transactor)
+      raw   <- selectByCategory(userId.id, category).transact(transactor)
       result = raw.map(transform).separate match {
-        case (_, right) => right
-      }
+                 case (_, right) => right
+               }
     } yield result
 
   override def findByPurchaseId(userId: User.Id, purchaseId: Purchase.Id): F[Option[Purchase]] =
     for {
-      raw <- selectByPurchaseId(userId.id, purchaseId.id).transact(transactor)
+      raw   <- selectByPurchaseId(userId.id, purchaseId.id).transact(transactor)
       result = raw.map(transform).separate match {
-        case (_, right) => right
-      }
+                 case (_, right) => right
+               }
     } yield result
 
   override def addPurchase(userId: User.Id, purchase: PurchaseRequest): F[Purchase.Id] = for {
     id <- insertPurchase(
-      userId.id,
-      purchase.money.amount,
-      purchase.money.currency.entryName,
-      purchase.comment.comment,
-      purchase.category.entryName
-    ).transact(transactor)
+            userId.id,
+            purchase.money.amount,
+            purchase.money.currency.entryName,
+            purchase.comment.comment,
+            purchase.category.entryName
+          ).transact(transactor)
   } yield Purchase.Id(id)
 
 }
@@ -57,11 +54,8 @@ class PurchaseRepositoryInterpreter[F[_] : BracketThrow : Monad](transactor: H2T
 object PurchaseRepositoryInterpreter {
 
   def transform(raw: PurchaseRaw): Either[BusinessError, Purchase] = for {
-    purchasesType <- PurchaseCategory.withNameInsensitiveOption(raw.category) match {
-      case Some(value) => Right(value)
-      case _ => Left(PurchaseNotExists("purchase not exists"))
-    }
-    currency = Currency.parse(raw.currency)
+    purchasesType <- PurchaseCategory.withNameInsensitiveOption(raw.category).toRight(PurchaseNotExists("purchase not exists"))
+    currency       = Currency.parse(raw.currency)
   } yield Purchase(Purchase.Id(raw.purchaseId), Money(raw.amount, currency), Purchase.Comment(raw.comment), purchasesType)
 
   // PurchaseType.withNameInsensitiveOption(raw.category).map(type => {
@@ -74,9 +68,9 @@ object PurchaseRepositoryInterpreter {
       .to[List]
 
   def selectByCategory(
-                        userId: Int,
-                        category: PurchaseCategory
-                      ): doobie.ConnectionIO[List[PurchaseRaw]] =
+    userId: Int,
+    category: PurchaseCategory
+  ): doobie.ConnectionIO[List[PurchaseRaw]] =
     sql"SELECT purchaseId, money, comment, category FROM purchases WHERE category = ${category.entryName} AND userId = $userId"
       .query[PurchaseRaw]
       .to[List]
@@ -87,24 +81,23 @@ object PurchaseRepositoryInterpreter {
       .option
 
   def insertPurchase(
-                      userId: Int,
-                      amount: BigDecimal,
-                      currency: String,
-                      comment: String,
-                      category: String
-                    ): ConnectionIO[Int] =
+    userId: Int,
+    amount: BigDecimal,
+    currency: String,
+    comment: String,
+    category: String
+  ): ConnectionIO[Int] =
     sql"INSERT INTO purchases (amount, currency, comment, category, userId) VALUES ($amount, $currency, $comment, $category, $userId)"
       .update
       .withUniqueGeneratedKeys[Int]("purchaseId")
 
   case class PurchaseRaw(
-                          purchaseId: Int,
-                          amount: BigDecimal,
-                          currency: String,
-                          comment: String,
-                          category: String,
-                          userId: Int
-                        )
+    purchaseId: Int,
+    amount: BigDecimal,
+    currency: String,
+    comment: String,
+    category: String,
+    userId: Int
+  )
+
 }
-
-
