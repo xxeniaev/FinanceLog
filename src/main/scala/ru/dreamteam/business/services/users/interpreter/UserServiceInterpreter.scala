@@ -17,7 +17,6 @@ class UserServiceInterpreter[F[_]: MonadThrow](
 
   override def login(login: User.Login, password: User.Password): F[Token] = for {
     userOption <- repo.findUserByLogin(login)
-    _          <- MonadThrow[F].fromOption(userOption, LoginNotExist("login not exists"))
     user       <- MonadThrow[F].fromOption(userOption, LoginNotExist("login not exists"))
     _          <- MonadThrow[F].raiseError(IncorrectPassword("incorrect password")).whenA(
                     user.password != password
