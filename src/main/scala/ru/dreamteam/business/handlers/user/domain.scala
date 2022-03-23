@@ -11,7 +11,7 @@ case class PersonalInfoRequest(userId: Int)
 @derive(tethysReader, tethysWriter)
 @description("Информация о пользователе")
 case class PersonalInfoResponse(
-  @description("Логин пользователя") login: String
+  @description("Логин пользователя") login: User.Login
 )
 
 @derive(tethysReader, tethysWriter)

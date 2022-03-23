@@ -1,6 +1,8 @@
 package ru.dreamteam.business.services.purchases
 
+import cats.Monad
 import ru.dreamteam.business.Purchase.PurchaseCategory
+import ru.dreamteam.business.services.purchases.interpreter.PurchaseInfo
 import ru.dreamteam.business.{Money, Purchase, User}
 
 trait PurchasesService[F[_]] {
@@ -18,6 +20,6 @@ trait PurchasesService[F[_]] {
 
   // нормально ли, что функция выдает строку? где эта строка формируется?
   // подумала, что она должна выдавать userId, pId, amount и тд
-  def purchaseInfo(userId: User.Id, purchaseId: Purchase.Id): F[String]
+  def purchaseInfo(userId: User.Id, purchaseId: Purchase.Id): F[PurchaseInfo]
 
 }

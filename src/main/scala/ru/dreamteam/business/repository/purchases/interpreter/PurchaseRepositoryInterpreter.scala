@@ -11,25 +11,32 @@ import ru.dreamteam.business.Purchase.PurchaseCategory
 import ru.dreamteam.business.repository.purchases.PurchasesRepository
 import ru.dreamteam.business.repository.purchases.PurchasesRepository.PurchaseRequest
 import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepositoryInterpreter.{insertPurchase, selectByCategory, selectByPurchaseId, selectByUserId, transform}
+import ru.dreamteam.business.services.purchases.interpreter.PurchaseNotExists
+import ru.dreamteam.business.services.users.interpreter.BusinessError
 
-class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F])
+class PurchaseRepositoryInterpreter[F[_]: BracketThrow](transactor: H2Transactor[F])
   extends PurchasesRepository[F] {
 
+  //записать ошибку в log, когда из сделаем
   override def findByUserId(userId: User.Id): F[List[Purchase]] = for {
     raw   <- selectByUserId(userId.id).transact(transactor)
-    result = raw.flatMap(transform)
+    (_, result) = raw.map(transform).separate
   } yield result
 
   override def findByCategory(userId: User.Id, category: PurchaseCategory): F[List[Purchase]] =
     for {
       raw   <- selectByCategory(userId.id, category).transact(transactor)
-      result = raw.flatMap(transform)
+      result = raw.map(transform).separate match {
+                 case (_, right) => right
+               }
     } yield result
 
   override def findByPurchaseId(userId: User.Id, purchaseId: Purchase.Id): F[Option[Purchase]] =
     for {
       raw   <- selectByPurchaseId(userId.id, purchaseId.id).transact(transactor)
-      result = raw.flatMap(transform)
+      result = raw.map(transform).separate match {
+                 case (_, right) => right
+               }
     } yield result
 
   override def addPurchase(userId: User.Id, purchase: PurchaseRequest): F[Purchase.Id] = for {
@@ -46,8 +53,8 @@ class PurchaseRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Tra
 
 object PurchaseRepositoryInterpreter {
 
-  def transform(raw: PurchaseRaw): Option[Purchase] = for {
-    purchasesType <- PurchaseCategory.withNameInsensitiveOption(raw.category)
+  def transform(raw: PurchaseRaw): Either[BusinessError, Purchase] = for {
+    purchasesType <- PurchaseCategory.withNameInsensitiveOption(raw.category).toRight(PurchaseNotExists("purchase not exists"))
     currency       = Currency.parse(raw.currency)
   } yield Purchase(Purchase.Id(raw.purchaseId), Money(raw.amount, currency), Purchase.Comment(raw.comment), purchasesType)
 
