@@ -7,29 +7,31 @@ import sttp.tapir.{header, Endpoint}
 import sttp.tapir.server.ServerEndpoint
 import zio.{Has, IO, Task, UIO, ZIO, ZLayer}
 
-// попробуйте сами сделать метод, который достает хедер авторизационный, проверяет сессию, достает по ней пользователя
 package object http {
 
   case object InvalidToken extends RuntimeException
 
-  // подшаманить с типами
   implicit class EndpointReacher2[I, O](endpoint: Endpoint[I, Unit, Response[O], Any]) {
 
+    type T[A] = ZIO[MainEnv, Throwable, A]
+
     def handleWithAuthorization(
-      logic: I => User.Id => ZIO[MainEnv, Throwable, O]
+      logic: I => User.Id => T[O]
     )(
       implicit
-      sessionService: SessionService[ZIO[MainEnv, Throwable, O]]
+      sessionService: SessionService[T]
     ): ServerEndpoint[(I, String), Unit, Response[O], Any, Task] =
       ServerEndpoint[(I, String), Unit, Response[O], Any, Task](
         endpoint.in(header[String]("session")),
         _ => {
           case (i, token) => {
-            val r: ZIO[MainEnv, Nothing, Response[O]] = for {
+            val r = for {
               trackingId <- ZIO.access[MainEnv](_.get[Context].trackingId)
-              idF         = sessionService.getUser(Token(token)).fold(Task.fail(InvalidToken), identity)
-              a          <- idF.flatMap(logic(i))
-                              .either.catchAllDefect(th => UIO(Left(th)))
+              r          <- sessionService.getUser(Token(token)).flatMap(userId =>
+                              logic(i)(userId.get)
+                            ) // <- fix this unsafe get operation
+                              .either
+                              .catchAllDefect(th => UIO(Left(th)))
                               .map {
                                 case Left(value)  => Response(
                                     none[O],
@@ -40,15 +42,12 @@ package object http {
                                 case Right(value) =>
                                   Response(value.some, trackingId, Status.Ok, none[ErrorPayload])
                               }
+            } yield r
 
-              // взять заголовок, где лежит сессия, проверить что сессия у нас есть (SessionService), вернуть юзерайди пользователя
-              // если нет сессии отбить ошибкой
-
-            } yield a
-
-            r.map(_.asRight[Unit]).provideLayer(ZLayer.fromFunction(_ =>
-              Context(TrackingIdGenerator.generate())
-            ))
+            r
+              .map(_.asRight[Unit]).provideLayer(ZLayer.fromFunction(_ =>
+                Context(TrackingIdGenerator.generate())
+              ))
           }
         }
       )
