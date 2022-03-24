@@ -8,7 +8,7 @@ import ru.dreamteam.business.User
 import doobie.implicits._
 import ru.dreamteam.business.repository.users.UsersRepository
 import ru.dreamteam.business.repository.users.UsersRepository.UserReq
-import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.{insertUser, selectUser, transform}
+import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.{insertUser, selectUser, selectUserByLogin, transform}
 import doobie.implicits.toSqlInterpolator
 
 class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F])
@@ -23,6 +23,10 @@ class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transa
     id <- insertUser(user.login.login, user.password.password).transact(transactor)
   } yield User.Id(id)
 
+  override def findUserByLogin(userLogin: User.Login): F[Option[User]] = for {
+    raw   <- selectUserByLogin(userLogin.login).transact(transactor)
+    result = raw.flatMap(transform)
+  } yield result
 }
 
 object UsersRepositoryInterpreter {
@@ -32,6 +36,11 @@ object UsersRepositoryInterpreter {
 
   def selectUser(userId: Int): doobie.ConnectionIO[Option[UserRaw]] =
     sql"SELECT login, password FROM users WHERE userId = $userId"
+      .query[UserRaw]
+      .option
+
+  def selectUserByLogin(userLogin: String): doobie.ConnectionIO[Option[UserRaw]] =
+    sql"SELECT userId, password FROM users WHERE login = $userLogin"
       .query[UserRaw]
       .option
 
