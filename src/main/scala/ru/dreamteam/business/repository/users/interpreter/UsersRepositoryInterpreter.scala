@@ -10,8 +10,9 @@ import ru.dreamteam.business.repository.users.UsersRepository
 import ru.dreamteam.business.repository.users.UsersRepository.UserReq
 import ru.dreamteam.business.repository.users.interpreter.UsersRepositoryInterpreter.{insertUser, selectUser, selectUserByLogin, transform}
 import doobie.implicits.toSqlInterpolator
+import doobie.util.transactor.Transactor
 
-class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: H2Transactor[F])
+class UsersRepositoryInterpreter[F[_]: BracketThrow: Monad](transactor: Transactor[F])
   extends UsersRepository[F] {
 
   override def findUser(userId: User.Id): F[Option[User]] = for {

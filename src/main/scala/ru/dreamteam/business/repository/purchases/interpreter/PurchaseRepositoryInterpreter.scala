@@ -7,6 +7,7 @@ import doobie.ConnectionIO
 import doobie.h2.H2Transactor
 import ru.dreamteam.business.{Currency, Money, Purchase, User}
 import doobie.implicits._
+import doobie.util.transactor.Transactor
 import ru.dreamteam.business.Purchase.PurchaseCategory
 import ru.dreamteam.business.repository.purchases.PurchasesRepository
 import ru.dreamteam.business.repository.purchases.PurchasesRepository.PurchaseRequest
@@ -14,7 +15,7 @@ import ru.dreamteam.business.repository.purchases.interpreter.PurchaseRepository
 import ru.dreamteam.business.services.purchases.interpreter.PurchaseNotExists
 import ru.dreamteam.business.services.users.interpreter.BusinessError
 
-class PurchaseRepositoryInterpreter[F[_]: BracketThrow](transactor: H2Transactor[F])
+class PurchaseRepositoryInterpreter[F[_]: BracketThrow](transactor: Transactor[F])
   extends PurchasesRepository[F] {
 
   //записать ошибку в log, когда из сделаем
