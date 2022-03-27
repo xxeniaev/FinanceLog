@@ -39,7 +39,8 @@ class Application {
                        Modules(
                          system = List(new SystemModule()(executorsComp.main)),
                          public = List(new UserModule(businessComp.servicesComponent.userService)(executorsComp.main),
-                           new PurchaseModule(businessComp.servicesComponent.purchaseService)(executorsComp.main, businessComp.servicesComponent.sessionService))
+                           new PurchaseModule(businessComp.servicesComponent.purchaseService)
+                           (executorsComp.main, businessComp.servicesComponent.sessionService))
                        )
                      )(configComp.appConfig.httpConfig, executorsComp.main)
     _ = println("DOME")
