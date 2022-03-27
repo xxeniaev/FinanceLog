@@ -21,6 +21,7 @@ import zio.{Task, ZIO, ZLayer}
 import zio.interop.catz._
 import zio.interop.catz.implicits._
 import cats.implicits._
+import ru.dreamteam.business.handlers.purchase.PurchaseModule
 
 class Application {
   import Resource.{liftF => rLiftF}
@@ -37,7 +38,8 @@ class Application {
     server        <- ServerComponent.build(
                        Modules(
                          system = List(new SystemModule()(executorsComp.main)),
-                         public = List(new UserModule(businessComp.servicesComponent.userService)(executorsComp.main))
+                         public = List(new UserModule(businessComp.servicesComponent.userService)(executorsComp.main),
+                           new PurchaseModule(businessComp.servicesComponent.purchaseService)(executorsComp.main, businessComp.servicesComponent.sessionService))
                        )
                      )(configComp.appConfig.httpConfig, executorsComp.main)
     _ = println("DOME")
