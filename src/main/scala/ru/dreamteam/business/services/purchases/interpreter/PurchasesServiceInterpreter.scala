@@ -3,6 +3,8 @@ package ru.dreamteam.business.services.purchases.interpreter
 import cats.MonadThrow
 import cats.effect.Sync
 import cats.syntax.all._
+import derevo.derive
+import derevo.tethys.{tethysReader, tethysWriter}
 import ru.dreamteam.business.Purchase.{Comment, PurchaseCategory}
 import ru.dreamteam.business.repository.purchases.PurchasesRepository
 import ru.dreamteam.business.repository.purchases.PurchasesRepository.PurchaseRequest
@@ -41,4 +43,8 @@ class PurchasesServiceInterpreter[F[_]: MonadThrow](repo: PurchasesRepository[F]
 }
 
 case class PurchaseNotExists(msg: String) extends BusinessError(msg)
+
+import ru.dreamteam.infrastructure.newtype._
+
+@derive(tethysReader, tethysWriter)
 case class PurchaseInfo(purchaseType: Purchase.PurchaseCategory, purchaseComment: Purchase.Comment)
