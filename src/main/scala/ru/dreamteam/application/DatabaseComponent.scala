@@ -36,7 +36,7 @@ object DatabaseComponent {
 
     val createUsers = sql"""
       CREATE TABLE IF NOT EXISTS users (
-        id   bigint auto_increment primary key,
+        userId   bigint auto_increment primary key,
         login VARCHAR NOT NULL UNIQUE,
         password  VARCHAR NOT NULL
       )
