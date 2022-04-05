@@ -1,11 +1,27 @@
 package ru.dreamteam.infrastructure
 
 import cats.syntax.all._
+import cats.instances.all._
 import ru.dreamteam.business.{Token, User}
 import ru.dreamteam.business.services.session.SessionService
 import sttp.tapir.{header, Endpoint}
 import sttp.tapir.server.ServerEndpoint
 import zio.{Has, IO, Task, UIO, ZIO, ZLayer}
+import zio.interop.catz._
+/*
+
+opt = Option[Int]
+func = Int => List[String]
+
+res -> List[Option[String]]
+
+opt + func
+
+opt.map(i => func(i)) : Option[List[String]]
+
+none  => List(None)
+some => List(some)
+ */
 
 package object http {
 
@@ -28,8 +44,8 @@ package object http {
             val r = for {
               trackingId <- ZIO.access[MainEnv](_.get[Context].trackingId)
               r          <- sessionService.getUser(Token(token)).flatMap(userId =>
-                              logic(i)(userId.get)
-                            ) // <- fix this unsafe get operation
+                              userId.traverse(id => logic(i)(id))
+                            )
                               .either
                               .catchAllDefect(th => UIO(Left(th)))
                               .map {
